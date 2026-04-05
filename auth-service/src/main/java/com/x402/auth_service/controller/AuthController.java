@@ -1,10 +1,12 @@
 package com.x402.auth_service.controller;
 
 import com.x402.auth_service.entity.User;
+import com.x402.auth_service.security.AuthCodeStore;
 import com.x402.auth_service.service.UserService;
 import com.x402.common.dto.ApiResponse;
 import com.x402.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
+    private final AuthCodeStore authCodeStore;
 
 
     @GetMapping("/me")
@@ -52,5 +55,20 @@ public class AuthController {
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> health(){
         return ResponseEntity.ok(ApiResponse.ok("Auth Service is running"));
+    }
+
+    @PostMapping("/exchange")
+    public ResponseEntity<ApiResponse<Map<String,String>>> exchange(@RequestBody Map<String,String> body){
+        String code = body.get("code");
+        if(code == null){
+            return ResponseEntity.ok(ApiResponse.error("Code is required", "no code given"));
+        }
+       Map<String,String> tokens = authCodeStore.exchangeCode(code);
+        if (tokens == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Invalid or expired code", "CODE_INVALID"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.ok(tokens));
     }
 }

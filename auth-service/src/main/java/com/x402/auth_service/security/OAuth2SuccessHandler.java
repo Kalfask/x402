@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -21,6 +22,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final AuthCodeStore authCodeStore;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -66,10 +68,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtProvider.generateAccessToken(user);
         String refreshToken = jwtProvider.generateRefreshToken(user);
 
-        String redirectUrl = String.format(
+        String code = authCodeStore.storeTokens(accessToken, refreshToken);
+
+       String redirectUrl = String.format("%s/auth/callback?code=%s", frontendUrl, code);
+
+       /* String redirectUrl = String.format(
                 "%s/auth/callback?token=%s&refresh=%s",
                 frontendUrl, accessToken, refreshToken
-        );
+        );*/
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 
