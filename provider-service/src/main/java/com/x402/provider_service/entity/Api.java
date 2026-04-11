@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.context.annotation.Bean;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,16 +19,16 @@ public class Api {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false)
     private Long providerId;
 
     @Column(nullable = false)
-    private String Name;
+    private String name;
 
     @Column(columnDefinition = "TEXT")
-    private String Description;
+    private String description;
 
     @Column(nullable = false)
     private String baseUrl;
@@ -40,6 +40,7 @@ public class Api {
     private Status status = Status.DRAFT;
 
     @OneToMany(mappedBy = "api", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Endpoint> endpoints = new ArrayList<>();
 
     @CreationTimestamp
