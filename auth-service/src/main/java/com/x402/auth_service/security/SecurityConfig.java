@@ -32,7 +32,7 @@ public class SecurityConfig {
     {
                 http
                     .csrf(csrf -> csrf.disable())
-                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .cors(cors -> cors.disable())
                     .sessionManagement(session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     )
@@ -56,7 +56,7 @@ public class SecurityConfig {
                     return http.build();
     }
 
-    @Bean
+    /*@Bean
     public CorsConfigurationSource  corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
@@ -72,7 +72,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-    }
+    }*/
 
 
 }
