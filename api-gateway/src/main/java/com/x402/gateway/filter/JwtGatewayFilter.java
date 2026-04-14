@@ -26,7 +26,7 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
             "/api/auth/exchange", "/api/auth/refresh",
             "/api/auth/health", "/api/marketplace",
             "/oauth2", "/login/oauth2", "/health",
-            "/api/pay/health", "/api/pay/verify"
+            "/api/pay/health"
     );
 
     @Override
