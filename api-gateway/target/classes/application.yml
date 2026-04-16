@@ -39,6 +39,12 @@ spring:
               predicates:
                 - Path=/api/pay/**
 
+            - id: proxy-api-calls
+              uri: http://placeholder
+              predicates:
+               - Path=/api/call/**
+
 
 app:
   jwt-secret: ${JWT_SECRET}
+  internal-api-key: ${INTERNAL_API_KEY}

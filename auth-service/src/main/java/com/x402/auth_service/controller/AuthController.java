@@ -71,4 +71,10 @@ public class AuthController {
 
         return ResponseEntity.ok(ApiResponse.ok(tokens));
     }
+
+    @GetMapping("/wallet/lookup")
+    public ResponseEntity<ApiResponse<Map<String,String>>> walletLookup(@RequestParam Long userId){
+        UserDTO user = userService.getUserById(userId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("walletAddress",user.getWalletAddress())));
+    }
 }

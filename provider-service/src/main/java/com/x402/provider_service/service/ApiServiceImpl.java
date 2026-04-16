@@ -111,6 +111,11 @@ public class ApiServiceImpl implements ApiService{
         endpointRepository.delete(endpoint);
     }
 
+    public EndpointDTO getEndpointById(Long endpointId)
+    {
+        return toEndpointDTO(endpointRepository.findById(endpointId).orElseThrow(() -> new ResourceNotFoundException("Endpoint not found")));
+    }
+
     //Marketplace (Public)
 
     @Override
@@ -182,12 +187,14 @@ public class ApiServiceImpl implements ApiService{
     private EndpointDTO toEndpointDTO(Endpoint ep) {
         return EndpointDTO.builder()
                 .id(ep.getId())
+                .providerId(ep.getApi().getProviderId())
                 .apiId(ep.getApi().getId())
                 .path(ep.getPath())
                 .method(ep.getMethod().name())
                 .description(ep.getDescription())
                 .pricePerCall(ep.getPricePerCall())
                 .isActive(ep.getIsActive())
+                .baseUrl(ep.getApi().getBaseUrl())
                 .build();
     }
 

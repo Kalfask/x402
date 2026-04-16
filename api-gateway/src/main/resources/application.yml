@@ -42,9 +42,9 @@ spring:
             - id: proxy-api-calls
               uri: http://placeholder
               predicates:
-                -Path=/api/call/**
+               - Path=/api/call/**
 
 
 app:
   jwt-secret: ${JWT_SECRET}
-  internal-api-key: ${INTERNAL_API-KEY}}
+  internal-api-key: ${INTERNAL_API_KEY}

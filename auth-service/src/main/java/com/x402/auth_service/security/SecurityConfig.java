@@ -42,7 +42,8 @@ public class SecurityConfig {
                                     "/api/auth/refresh",
                                     "/oauth2/**",
                                     "/login/oauth2/**",
-                                    "/api/auth/exchange"
+                                    "/api/auth/exchange",
+                                    "/api/auth/wallet/lookup"
                             ).permitAll()
                             .anyRequest().authenticated()
                     )

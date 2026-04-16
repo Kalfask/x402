@@ -23,4 +23,6 @@ public interface ApiService {
     // === Marketplace (public) ===
     List<ApiDTO> browseMarketplace(String search, String category);
     ApiDTO getMarketplaceApi(Long apiId);
+
+    EndpointDTO getEndpointById(Long endpointId);
 }

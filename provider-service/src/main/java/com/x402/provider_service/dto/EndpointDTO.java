@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 @Builder
 public class EndpointDTO {
     private Long id;
+    private Long providerId;
     private Long apiId;
     private String path;
     private String method;
     private String description;
     private BigDecimal pricePerCall;
     private Boolean isActive;
+    private String baseUrl;
 }

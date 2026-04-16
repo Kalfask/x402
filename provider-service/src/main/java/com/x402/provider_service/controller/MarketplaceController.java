@@ -2,6 +2,8 @@ package com.x402.provider_service.controller;
 
 import com.x402.common.dto.ApiResponse;
 import com.x402.provider_service.dto.ApiDTO;
+import com.x402.provider_service.dto.EndpointDTO;
+import com.x402.provider_service.entity.Api;
 import com.x402.provider_service.service.ApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,13 @@ public class MarketplaceController {
             @PathVariable Long id)
     {
         return ResponseEntity.ok(ApiResponse.ok(apiService.getMarketplaceApi(id)));
+    }
+
+    @GetMapping("/lookup")
+    public ResponseEntity<ApiResponse<EndpointDTO>> lookupEndpoint(
+            @RequestParam Long endpointId)
+    {
+        return ResponseEntity.ok(ApiResponse.ok(apiService.getEndpointById(endpointId)));
     }
 
     @GetMapping("/health")
