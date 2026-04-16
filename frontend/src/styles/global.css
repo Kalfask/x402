@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+:root {
+ --bg: #0a0a0a;
+ --bg2: #111;
+ --bg3: #161616;
+ --fg: #f0ede6;
+ --fg2: #888;
+ --fg3: #444;
+ --accent: #e8e0d0;
+ --gold: #c9a85c;
+ --border: #222;
+ --border2: #333;
+ --green: #4caf7a;
+ --red: #e05050;
+ --font: 'Inter', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+/* Reusable button classes */
+.btn-primary {
+ font-size: 12px; padding: 12px 28px; background: var(--fg); color: var(--bg);
+ border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase;
+ font-weight: 500; font-family: var(--font); border-radius: 2px; transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-ghost {
+ font-size: 12px; padding: 12px 28px; background: transparent; color: var(--fg);
+ border: 0.5px solid var(--border2); cursor: pointer; letter-spacing: 0.1em;
+ text-transform: uppercase; font-family: var(--font); border-radius: 2px;
+}
+.btn-ghost:hover { border-color: var(--fg3); }
+.btn-gold {
+ font-size: 12px; padding: 12px 28px; background: var(--gold); color: #0a0a0a;
+ border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase;
+ font-weight: 500; font-family: var(--font); border-radius: 2px;
+}
