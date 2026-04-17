@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.web.reactive.function.BodyExtractors;
+import reactor.core.publisher.Flux;
 
 import java.io.Console;
 import java.util.HashMap;
@@ -190,6 +192,54 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
     }
 
     private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath) {
+        return exchange.getRequest().getBody()
+                .collectList()
+                .flatMap(bodyparts ->{
+
+                    WebClient.RequestBodySpec request = webClient.method(exchange.getRequest().getMethod())
+                            .uri(baseUrl + endpointPath);
+                    request.headers(h-> {
+                        exchange.getRequest().getHeaders().forEach((key,value)->{
+                            if (!key.equalsIgnoreCase("Host")
+                                    && !key.equalsIgnoreCase("X-402-Payment")
+                                    && !key.equalsIgnoreCase("X-User-Id")) {
+                                h.addAll(key, value);
+                            }
+                        });
+                    });
+                    WebClient.RequestHeadersSpec<?> readyRequest;
+                    if(!bodyparts.isEmpty())
+                    {
+                        readyRequest = request.body(
+                                Flux.fromIterable(bodyparts), DataBuffer.class
+                        );
+                    }
+                    else
+                    {
+                        readyRequest = request;
+                    }
+
+                    return readyRequest
+                            .exchangeToMono(clientResponse -> {
+
+                                exchange.getResponse().setStatusCode(clientResponse.statusCode());
+
+                                clientResponse.headers().asHttpHeaders()
+                                        .forEach((key, value)->{
+                                            if(!key.equalsIgnoreCase("Transfer-Encoding")
+                                                && !key.equalsIgnoreCase("access-control-")){
+                                                exchange.getResponse().getHeaders().addAll(key, value);
+                                            }
+                                        });
+                                addCorsHeaders(exchange);
+                                return exchange.getResponse().writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
+                            });
+                })
+                .onErrorResume(e-> writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,
+                        Map.of("error", "Provider API unreachable: " + e.getMessage())));
+
+    }
+    /*private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath) {
         return webClient.method(exchange.getRequest().getMethod())
                 .uri(baseUrl +endpointPath)
                 .headers(h->{
@@ -213,12 +263,13 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                         Map.of("error", "Provider API unreachable: "
                                 + e.getMessage())));
 
-    }
+    }*/
 
     //helpers
     private Mono<Void> writeJsonResponse(ServerWebExchange exchange, HttpStatus status, Object body) {
         try
         {
+            addCorsHeaders(exchange);
             byte[] bytes = objectMapper.writeValueAsBytes(body);
             exchange.getResponse().setStatusCode(status);
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -247,6 +298,26 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .map(json -> json.path("data").path("walletAddress").asText());
+    }
+
+    private void cleanCorsHeaders(ServerWebExchange exchange)
+    {
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Origin");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Credentials");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Headers");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Methods");
+    }
+
+    private void addCorsHeaders(ServerWebExchange exchange)
+    {
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Origin");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Credentials");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Methods");
+        exchange.getResponse().getHeaders().remove("Access-Control-Allow-Headers");
+        exchange.getResponse().getHeaders().set(
+                "Access-Control-Allow-Origin", "http://localhost:5173");
+        exchange.getResponse().getHeaders().set(
+                "Access-Control-Allow-Credentials", "true");
     }
 
 }
