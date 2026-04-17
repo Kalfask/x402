@@ -1,17 +1,17 @@
 package com.x402.common.security;
 
-import com.x402.common.exceptions.UnauthorizedException;
+import java.nio.charset.StandardCharsets;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j

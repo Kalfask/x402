@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAccount } from 'wagmi';
 import { getApiDetail } from '../services/api';
+import { useApiCall } from '../hooks/useApiCall';
+import { useAuth } from '../context/AuthContext';
 import '../styles/marketplace.css';
 
 export default function ApiDetail() {
   const { id } = useParams();
+  const { accessToken, user } = useAuth();
+  const { isConnected } = useAccount();
+  const { callApi, callApiWithPayment, loading, error, status } = useApiCall();
   const [api, setApi] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [apiResponse, setApiResponse] = useState(null);
+  const [showManual, setShowManual] = useState(false);
+  const [txHash, setTxHash] = useState('');
+  const [activeEndpoint, setActiveEndpoint] = useState(null);
 
   useEffect(() => {
     loadApi();
@@ -15,10 +25,34 @@ export default function ApiDetail() {
   const loadApi = async () => {
     const data = await getApiDetail(id);
     if (data.data) setApi(data.data);
-    setLoading(false);
+    setPageLoading(false);
   };
 
-  if (loading) return <div style={{padding: '80px 40px', color: 'var(--fg2)'}}>Loading...</div>;
+  // Auto pay: MetaMask pops up automatically
+  const handleAutoPay = async (ep) => {
+    setApiResponse(null);
+    setActiveEndpoint(ep);
+    const result = await callApi(ep.id, ep.path);
+    if (result?.success) {
+      setApiResponse(result.data);
+    }
+  };
+
+  // Manual pay: paste txHash
+  const handleManualPay = async () => {
+    if (!txHash.trim() || !activeEndpoint) return;
+    const result = await callApiWithPayment(activeEndpoint.id, activeEndpoint.path, txHash);
+    if (result) {
+      setApiResponse(result);
+      setShowManual(false);
+      setTxHash('');
+    }
+  };
+
+  // Check if wallet is available (connected or saved in DB)
+  const hasWallet = isConnected || user?.walletAddress;
+
+  if (pageLoading) return <div style={{padding: '80px 40px', color: 'var(--fg2)'}}>Loading...</div>;
   if (!api) return <div style={{padding: '80px 40px', color: 'var(--red)'}}>API not found</div>;
 
   return (
@@ -54,9 +88,82 @@ export default function ApiDetail() {
             </div>
             <p className="endpoint-desc">{ep.description}</p>
             <div className="endpoint-bottom">
-              <div className="card-price">{ep.pricePerCall} USDC</div>
-              <div className="card-price-label">per call</div>
+              <div>
+                <div className="card-price">{ep.pricePerCall} USDC</div>
+                <div className="card-price-label">per call</div>
+              </div>
+
+              {accessToken && (
+                <div style={{display: 'flex', gap: 8}}>
+                  {/* Auto pay button — only if wallet is available */}
+                  {hasWallet && (
+                    <button
+                      className="btn-gold"
+                      onClick={() => handleAutoPay(ep)}
+                      disabled={loading}
+                    >
+                      {loading ? status || 'Processing...' : `Pay & Call (${ep.pricePerCall} USDC)`}
+                    </button>
+                  )}
+
+                  {/* Manual pay fallback */}
+                  <button
+                    className="btn-ghost"
+                    onClick={() => {
+                      setActiveEndpoint(ep);
+                      setShowManual(!showManual);
+                    }}
+                  >
+                    {hasWallet ? 'Manual' : `Call API (${ep.pricePerCall} USDC)`}
+                  </button>
+                </div>
+              )}
+
+              {!accessToken && (
+                <span style={{fontSize: 12, color: 'var(--fg2)'}}>Login to call this API</span>
+              )}
             </div>
+
+            {/* Manual payment box */}
+            {showManual && activeEndpoint?.id === ep.id && (
+              <div className="payment-box">
+                <div className="payment-box-title">Manual Payment</div>
+                <p className="field-hint" style={{marginBottom: 12}}>
+                  Send {ep.pricePerCall} USDC to the provider's wallet via MetaMask, then paste the transaction hash:
+                </p>
+                <input
+                  type="text"
+                  placeholder="0x... transaction hash"
+                  value={txHash}
+                  onChange={e => setTxHash(e.target.value)}
+                  style={{marginBottom: 12}}
+                />
+                <button
+                  className="btn-gold"
+                  onClick={handleManualPay}
+                  disabled={loading || !txHash.trim()}
+                  style={{width: '100%'}}
+                >
+                  {loading ? 'Verifying...' : 'Submit payment'}
+                </button>
+              </div>
+            )}
+
+            {/* API Response */}
+            {apiResponse && activeEndpoint?.id === ep.id && (
+              <div className="api-response">
+                <div className="payment-box-title">API Response</div>
+                <pre className="response-pre">
+                  {JSON.stringify(apiResponse, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {error && activeEndpoint?.id === ep.id && (
+              <div style={{marginTop: 12, color: 'var(--red)', fontSize: 13}}>
+                {error}
+              </div>
+            )}
           </div>
         ))}
       </div>

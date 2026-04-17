@@ -36,6 +36,18 @@ export const createApi = (apiData, accessToken, refreshFn) => apiFetch('/api/pro
     body: JSON.stringify(apiData)
 }, accessToken, refreshFn);
 
+
+
+export const updateApi = (apiId, data, token, refresh) =>
+  apiFetch(`/api/provider/apis/${apiId}`, {
+    method: 'PUT', body: JSON.stringify(data)
+  }, token, refresh);
+
+export const deleteEndpoint = ( endpointId, token, refresh) =>
+  apiFetch(`/api/provider/endpoints/${endpointId}`, {
+    method: 'DELETE'
+  }, token, refresh);
+
 export const addEndpoint = (apiId, endpointData, accessToken, refreshFn) => apiFetch(`/api/provider/apis/${apiId}/endpoints`, {
     method: 'POST',
     body: JSON.stringify(endpointData)

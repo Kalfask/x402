@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getMyApis } from '../services/api';
+import { getMyApis, updateApiStatus } from '../services/api';
 import '../styles/dashboard.css';
 
 export default function MyApis() {
@@ -17,6 +17,12 @@ export default function MyApis() {
     const data = await getMyApis(accessToken, refresh);
     if (data.data) setApis(data.data);
     setLoading(false);
+  };
+
+  const toggleStatus = async (api) => {
+    const newStatus = api.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    await updateApiStatus(api.id, newStatus, accessToken, refresh);
+    loadMyApis();
   };
 
   if (loading) return <div style={{padding: '80px 40px', color: 'var(--fg2)'}}>Loading...</div>;
@@ -38,19 +44,31 @@ export default function MyApis() {
         </div>
       ) : (
         <div className="api-table">
-          <div className="table-header">
+          <div className="table-header five-col">
             <span>Name</span>
             <span>Category</span>
             <span>Endpoints</span>
             <span>Status</span>
+            <span>Actions</span>
           </div>
           {apis.map(api => (
-            <Link to={`/marketplace/${api.id}`} key={api.id} className="table-row">
+            <div key={api.id} className="table-row five-col">
               <span className="table-name">{api.name}</span>
               <span className="table-cat">{api.category}</span>
               <span className="table-count">{api.endpoints?.length || 0}</span>
               <span className={`table-status ${api.status?.toLowerCase()}`}>{api.status}</span>
-            </Link>
+              <div style={{display: 'flex', gap: 8}}>
+                <Link to={`/my-apis/${api.id}/edit`}>
+                  <button className="btn-small">Edit</button>
+                </Link>
+                <button
+                  className="btn-small-ghost"
+                  onClick={() => toggleStatus(api)}
+                >
+                  {api.status === 'ACTIVE' ? 'Pause' : 'Activate'}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}

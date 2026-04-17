@@ -51,3 +51,16 @@
 .table-header.five-col, .table-row.five-col {
   grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr;
 }
+.btn-small {
+  font-size: 11px; padding: 5px 14px; background: var(--fg); color: var(--bg);
+  border: none; cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase;
+  font-family: var(--font); border-radius: 2px; transition: opacity 0.2s;
+}
+.btn-small:hover { opacity: 0.85; }
+.btn-small-ghost {
+  font-size: 11px; padding: 5px 14px; background: transparent; color: var(--fg2);
+  border: 0.5px solid var(--border2); cursor: pointer; letter-spacing: 0.06em;
+  text-transform: uppercase; font-family: var(--font); border-radius: 2px;
+  transition: all 0.15s;
+}
+.btn-small-ghost:hover { border-color: var(--fg2); color: var(--fg); }
