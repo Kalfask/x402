@@ -3,9 +3,13 @@ package com.x402.provider_service.controller;
 import com.x402.common.dto.ApiResponse;
 import com.x402.provider_service.dto.ApiDTO;
 import com.x402.provider_service.dto.EndpointDTO;
+import com.x402.provider_service.dto.EndpointLookupDTO;
 import com.x402.provider_service.entity.Api;
+import com.x402.provider_service.repository.ApiRepository;
 import com.x402.provider_service.service.ApiService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +23,9 @@ import java.util.List;
 public class MarketplaceController {
 
     private final ApiService apiService;
+
+    @Value("${app.internal.key}")
+    private String int_key;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ApiDTO>>> browse(
@@ -35,10 +42,19 @@ public class MarketplaceController {
     }
 
     @GetMapping("/lookup")
-    public ResponseEntity<ApiResponse<EndpointDTO>> lookupEndpoint(
-            @RequestParam Long endpointId)
+    public ResponseEntity<ApiResponse<EndpointLookupDTO>> lookupEndpoint(
+            @RequestParam Long endpointId,
+            @RequestHeader("X-Internal-Key")  String internalApiKey)
     {
-        return ResponseEntity.ok(ApiResponse.ok(apiService.getEndpointById(endpointId)));
+        if(int_key.equals(internalApiKey))
+        {
+            return ResponseEntity.ok(ApiResponse.ok(apiService.getEndpointLookup(endpointId)));
+        }
+        else
+        {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("Invalid internal key", "FORBIDDEN"));
+        }
+
     }
 
     @GetMapping("/health")

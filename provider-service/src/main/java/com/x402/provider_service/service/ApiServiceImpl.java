@@ -134,7 +134,7 @@ public class ApiServiceImpl implements ApiService{
         {
             apis = apiRepository.findByStatus(Api.Status.ACTIVE);
         }
-        return apis.stream().map(this::toDTO).collect(Collectors.toList());
+        return apis.stream().map(this::toPublicDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -145,7 +145,7 @@ public class ApiServiceImpl implements ApiService{
         {
             throw new UnauthorizedException("Api not active");
         }
-        return toDTO(api);
+        return toPublicDTO(api);
     }
 
 
@@ -169,6 +169,28 @@ public class ApiServiceImpl implements ApiService{
         }
         return ep;
     }
+    @Override
+    public EndpointLookupDTO getEndpointLookup(Long endpointId)
+    {
+        Endpoint endpoint = endpointRepository.findById(endpointId).orElseThrow(() -> new RuntimeException("Endpoint not found"));
+        return EndpointLookupDTO.builder()
+                .id(endpoint.getId())
+                .providerId(endpoint.getApi().getProviderId())
+                .apiId(endpoint.getApi().getId())
+                .path(endpoint.getPath())
+                .method(endpoint.getMethod().name())
+                .pricePerCall(endpoint.getPricePerCall())
+                .baseUrl(endpoint.getApi().getBaseUrl())
+                .providerApiKey(endpoint.getApi().getProviderApiKey())
+                .build();
+    }
+
+    private ApiDTO toPublicDTO(Api api)
+    {
+        ApiDTO dto = toDTO(api);
+        dto.setProviderApiKey(null);
+        return dto;
+    }
 
     private ApiDTO toDTO(Api api) {
         return ApiDTO.builder()
@@ -182,6 +204,7 @@ public class ApiServiceImpl implements ApiService{
                 .endpoints(api.getEndpoints().stream()
                         .map(this::toEndpointDTO)
                         .collect(Collectors.toList()))
+                .providerApiKey(api.getProviderApiKey())
                 .createdAt(api.getCreatedAt())
                 .updatedAt(api.getUpdatedAt())
                 .build();
@@ -197,7 +220,6 @@ public class ApiServiceImpl implements ApiService{
                 .pricePerCall(ep.getPricePerCall())
                 .isActive(ep.getIsActive())
                 .baseUrl(ep.getApi().getBaseUrl())
-                .providerApiKey(ep.getApi().getProviderApiKey())
                 .build();
     }
 

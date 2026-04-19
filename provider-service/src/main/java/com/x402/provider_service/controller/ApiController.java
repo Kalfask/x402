@@ -84,12 +84,12 @@ public class ApiController {
 
     @PutMapping("/endpoints/{id}")
     public ResponseEntity<ApiResponse<EndpointDTO>> updateEndpoint(
-            @PathVariable Long Id,
+            @PathVariable Long id,
             @Valid @RequestBody UpdateEndpointRequest request,
             Authentication authentication
     )
     {
-        return ResponseEntity.ok(ApiResponse.ok(apiService.updateEndpoint(getUserId(authentication), Id, request)));
+        return ResponseEntity.ok(ApiResponse.ok(apiService.updateEndpoint(getUserId(authentication), id, request)));
     }
 
     @DeleteMapping("/endpoints/{id}")

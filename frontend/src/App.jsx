@@ -10,6 +10,7 @@ import MyApis from './pages/MyApis';
 import Usage from './pages/Usage';
 import Earnings from './pages/Earnings';
 import EditApi from './pages/EditApi';
+import ApiKeys from './pages/ApiKeys';
 import './styles/global.css';
 
 function App() {
@@ -27,13 +28,15 @@ function App() {
             <ProtectedRoute><CreateListing /></ProtectedRoute>} />
           <Route path='/my-apis/:id/edit' element={
             <ProtectedRoute><EditApi /></ProtectedRoute>} />
+          <Route path='/api-keys' element={
+            <ProtectedRoute><ApiKeys /></ProtectedRoute>} />
           <Route path='/my-apis' element={
             <ProtectedRoute><MyApis /></ProtectedRoute>} />
           <Route path='/usage' element={
             <ProtectedRoute><Usage /></ProtectedRoute>} />
           <Route path='/earnings' element={
             <ProtectedRoute><Earnings /></ProtectedRoute>} />
-          
+
         </Routes>
       </AuthProvider>
     </BrowserRouter>

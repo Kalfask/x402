@@ -25,4 +25,6 @@ public interface ApiService {
     ApiDTO getMarketplaceApi(Long apiId);
 
     EndpointDTO getEndpointById(Long endpointId);
+
+    EndpointLookupDTO getEndpointLookup( Long endpointId);
 }

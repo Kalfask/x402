@@ -69,4 +69,19 @@ export const updateWallet = (walletAddress, token, refresh) =>
  method: 'PATCH', body: JSON.stringify({ walletAddress })
  }, token, refresh);
 
+ // Add these to your api.js
+
+export const getMyKeys = (token, refresh) =>
+  apiFetch('/api/auth/keys', {}, token, refresh);
+
+export const createApiKey = (name, token, refresh) =>
+  apiFetch('/api/auth/keys', {
+    method: 'POST', body: JSON.stringify({ name })
+  }, token, refresh);
+
+export const deactivateKey = (keyId, token, refresh) =>
+  apiFetch(`/api/auth/keys/${keyId}`, {
+    method: 'DELETE'
+  }, token, refresh);
+
 

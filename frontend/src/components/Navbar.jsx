@@ -13,6 +13,7 @@ export default function Navbar() {
         <li><Link to="/">Marketplace</Link></li>
         <li><Link to="/sell">Sell</Link></li>
         {user && <li><Link to="/my-apis">My APIs</Link></li>}
+        {user && <li><Link to='/api-keys'>API Keys</Link></li>}
         {user && <li><Link to="/usage">Usage</Link></li>}
         {user && <li><Link to="/earnings">Earnings</Link></li>}
       </ul>

@@ -296,6 +296,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
     {
         return webClient.get()
                 .uri("http://localhost:8082/api/marketplace/lookup?endpointId=" + endpointId)
+                .header("X-Internal-Key", internalApiKey)
                 .retrieve()
                 .bodyToMono(JsonNode.class);
     }

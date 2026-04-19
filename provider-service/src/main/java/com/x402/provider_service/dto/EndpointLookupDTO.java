@@ -1,18 +1,23 @@
 package com.x402.provider_service.dto;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
 @Data
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class EndpointDTO {
+public class EndpointLookupDTO {
     private Long id;
     private Long providerId;
     private Long apiId;
     private String path;
     private String method;
-    private String description;
     private BigDecimal pricePerCall;
-    private Boolean isActive;
     private String baseUrl;
+    private String providerApiKey;
 }

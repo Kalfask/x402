@@ -15,6 +15,7 @@ public class ApiDTO {
     private String category;
     private String status;
     private List<EndpointDTO> endpoints;
+    private String providerApiKey;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
