@@ -18,4 +18,6 @@ public class CreateApiRequest {
     private String baseUrl;
 
     private String category;
+
+    private String providerApiKey;
 }

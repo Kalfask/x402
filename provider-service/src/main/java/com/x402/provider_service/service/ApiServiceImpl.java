@@ -34,6 +34,7 @@ public class ApiServiceImpl implements ApiService{
                 .description(request.getDescription())
                 .baseUrl(request.getBaseUrl())
                 .category(request.getCategory())
+                .providerApiKey(request.getProviderApiKey())
                 .build();
 
         return toDTO(apiRepository.save(api));
@@ -48,6 +49,7 @@ public class ApiServiceImpl implements ApiService{
         if(request.getDescription() != null) api.setDescription(request.getDescription());
         if(request.getBaseUrl() != null) api.setBaseUrl(request.getBaseUrl());
         if(request.getCategory() != null) api.setCategory(request.getCategory());
+        if(request.getProviderApiKey() != null) api.setProviderApiKey(request.getProviderApiKey());
         return toDTO(apiRepository.save(api));
     }
 
@@ -195,6 +197,7 @@ public class ApiServiceImpl implements ApiService{
                 .pricePerCall(ep.getPricePerCall())
                 .isActive(ep.getIsActive())
                 .baseUrl(ep.getApi().getBaseUrl())
+                .providerApiKey(ep.getApi().getProviderApiKey())
                 .build();
     }
 

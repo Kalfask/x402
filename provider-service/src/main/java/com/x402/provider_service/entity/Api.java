@@ -43,6 +43,8 @@ public class Api {
     @Builder.Default
     private List<Endpoint> endpoints = new ArrayList<>();
 
+    private String providerApiKey;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

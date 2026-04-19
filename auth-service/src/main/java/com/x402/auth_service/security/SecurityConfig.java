@@ -43,7 +43,8 @@ public class SecurityConfig {
                                     "/oauth2/**",
                                     "/login/oauth2/**",
                                     "/api/auth/exchange",
-                                    "/api/auth/wallet/lookup"
+                                    "/api/auth/wallet/lookup",
+                                    "/api/auth/validate-key"
                             ).permitAll()
                             .anyRequest().authenticated()
                     )

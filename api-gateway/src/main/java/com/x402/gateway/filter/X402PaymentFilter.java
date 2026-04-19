@@ -104,6 +104,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
         return lookupEndpoint(endpointId)
                 .flatMap(json ->{
                     JsonNode data =json.path("data");
+                    String providerApiKey = data.path("providerApiKey").asText("");
                     Long providerId = data.path("providerId").asLong();
                     Long apiId = data.path("apiId").asLong();
                     String baseUrl = data.path("baseUrl").asText();
@@ -133,7 +134,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                             if(valid)
                                             {
                                                 //Forward to provider's real API
-                                                return forwardToProvider(exchange,baseUrl,endpointPath);
+                                                return forwardToProvider(exchange,baseUrl,endpointPath, providerApiKey);
                                             }
                                             else{
                                                 String reason = response.path("data").path("reason").asText("Payment failed");
@@ -191,7 +192,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                 });*/
     }
 
-    private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath) {
+    private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath, String providerApiKey) {
         return exchange.getRequest().getBody()
                 .collectList()
                 .flatMap(bodyparts ->{
@@ -202,11 +203,19 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                         exchange.getRequest().getHeaders().forEach((key,value)->{
                             if (!key.equalsIgnoreCase("Host")
                                     && !key.equalsIgnoreCase("X-402-Payment")
-                                    && !key.equalsIgnoreCase("X-User-Id")) {
+                                    && !key.equalsIgnoreCase("X-User-Id")
+                                    && !key.equalsIgnoreCase("X-Api-Key")) {
                                 h.addAll(key, value);
                             }
                         });
+
+                        if(providerApiKey !=null && !providerApiKey.isEmpty())
+                        {
+                            h.set("X-Provider-Key", providerApiKey);
+                        }
                     });
+
+
                     WebClient.RequestHeadersSpec<?> readyRequest;
                     if(!bodyparts.isEmpty())
                     {

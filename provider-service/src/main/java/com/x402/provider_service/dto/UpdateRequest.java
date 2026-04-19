@@ -12,4 +12,5 @@ public class UpdateRequest {
     private String description;
     private String baseUrl;
     private String category;
+    private String providerApiKey;
 }
