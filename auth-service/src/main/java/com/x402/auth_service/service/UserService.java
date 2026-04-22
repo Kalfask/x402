@@ -8,7 +8,8 @@ import com.x402.auth_service.security.JwtProvider;
 import com.x402.common.dto.UserDTO;
 import com.x402.common.exceptions.ResourceNotFoundException;
 import com.x402.common.exceptions.UnauthorizedException;
-import jakarta.transaction.Transactional;
+
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class UserService {
         return toDTO(user);
     }
 
-
+    @Transactional(noRollbackFor = UnauthorizedException.class)
     public Map<String,String> refreshAccessToken(String refreshToken)
     {
 
@@ -43,6 +44,11 @@ public class UserService {
 
         if(refreshTokenObj==null || refreshTokenObj.isUsed())
         {
+            if(refreshTokenObj !=null && refreshTokenObj.isUsed())
+            {
+                System.out.println(refreshTokenObj.getUserId());
+                refreshTokenRepository.deleteAllByUserId(refreshTokenObj.getUserId());
+            }
             throw new UnauthorizedException("Refresh Token is used");
         }
         if(!jwtProvider.validateToken(refreshToken))
