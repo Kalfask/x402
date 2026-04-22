@@ -69,6 +69,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ refreshToken: storedToken }),
       });
       const data = await res.json();
+      console.log("Refresh response:", data);
       if (data.data?.accessToken) {
         setAccessToken(data.data.accessToken);
         if (data.data.refreshToken) {

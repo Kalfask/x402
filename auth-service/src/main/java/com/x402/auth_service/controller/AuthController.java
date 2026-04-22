@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,8 +36,9 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<Map<String,String>>> refreshToken(@RequestBody Map<String,String> body){
         String refreshToken = body.get("refreshToken");
-        String newAccessToken = userService.refreshAccessToken(refreshToken);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("accessToken",newAccessToken),"Token refreshed"));
+        Map<String,String> map = userService.refreshAccessToken(refreshToken);
+       // String newAccessToken = userService.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok(ApiResponse.ok(map,"Token refreshed"));
     }
 
     @PatchMapping("/role")

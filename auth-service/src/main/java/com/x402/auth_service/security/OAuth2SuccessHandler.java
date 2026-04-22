@@ -1,7 +1,9 @@
 package com.x402.auth_service.security;
 
 
+import com.x402.auth_service.entity.RefreshToken;
 import com.x402.auth_service.entity.User;
+import com.x402.auth_service.repository.RefreshTokenRepository;
 import com.x402.auth_service.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +25,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final AuthCodeStore authCodeStore;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -67,6 +70,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 });
         String accessToken = jwtProvider.generateAccessToken(user);
         String refreshToken = jwtProvider.generateRefreshToken(user);
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                            .userId(user.getId())
+                            .token(refreshToken)
+                            .used(false)
+                            .build();
+        refreshTokenRepository.save(refreshTokenEntity);
 
         String code = authCodeStore.storeTokens(accessToken, refreshToken);
 

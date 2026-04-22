@@ -1,6 +1,8 @@
 package com.x402.auth_service.service;
 
+import com.x402.auth_service.entity.RefreshToken;
 import com.x402.auth_service.entity.User;
+import com.x402.auth_service.repository.RefreshTokenRepository;
 import com.x402.auth_service.repository.UserRepository;
 import com.x402.auth_service.security.JwtProvider;
 import com.x402.common.dto.UserDTO;
@@ -11,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Service
@@ -18,6 +22,7 @@ import java.util.regex.Pattern;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
 
     private static final String WALLET_REGEX = "^0x[a-fA-F0-9]{40}$";
@@ -31,15 +36,33 @@ public class UserService {
     }
 
 
-    public String refreshAccessToken(String refreshToken)
+    public Map<String,String> refreshAccessToken(String refreshToken)
     {
+
+        RefreshToken refreshTokenObj = refreshTokenRepository.findByToken(refreshToken);
+
+        if(refreshTokenObj==null || refreshTokenObj.isUsed())
+        {
+            throw new UnauthorizedException("Refresh Token is used");
+        }
         if(!jwtProvider.validateToken(refreshToken))
         {
             throw new UnauthorizedException("Invalid Refresh Token");
         }
         Long userId = jwtProvider.getUserIdFromToken(refreshToken);
         User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found: " + userId));
-        return jwtProvider.generateAccessToken(user);
+        refreshTokenObj.setUsed(true);
+        refreshTokenRepository.save(refreshTokenObj);
+        String newRefreshToken = jwtProvider.generateRefreshToken(user);
+        RefreshToken refreshToken2 = RefreshToken.builder()
+                .userId(user.getId())
+                .token(newRefreshToken)
+                .used(false)
+                .build();
+        refreshTokenRepository.save(refreshToken2);
+        String newAccessToken = jwtProvider.generateAccessToken(user);
+        return Map.of("accessToken",newAccessToken,
+                      "refreshToken",newRefreshToken);
     }
 
     @Transactional
