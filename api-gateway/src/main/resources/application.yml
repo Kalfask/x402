@@ -5,6 +5,12 @@ spring:
   application:
     name: api-gateway
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+
   data:
     redis:
       host: localhost

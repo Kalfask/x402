@@ -2,6 +2,11 @@ package com.x402.gateway.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.x402.gateway.dto.UsageEvent;
+import com.x402.gateway.service.UsageEventPublisher;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -22,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class X402PaymentFilter implements GlobalFilter , Ordered {
 
     @Value(("${app.internal-api-key}"))
@@ -29,6 +35,9 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
 
     private final WebClient webClient = WebClient.create();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    private final UsageEventPublisher  usageEventPublisher;
 
     @Override
     public int getOrder() {return 0;} //after jwt filter (-1)
@@ -133,6 +142,21 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                             boolean valid = response.path("data").path("valid").asBoolean(false);
                                             if(valid)
                                             {
+                                                UsageEvent event = UsageEvent.builder()
+                                                        .consumerId(userId)
+                                                        .endpointId(String.valueOf(endpointId))
+                                                        .apiId(String.valueOf(apiId))
+                                                        .providerId(String.valueOf(providerId))
+                                                        .txHash(txHash)
+                                                        .price(new java.math.BigDecimal(price))
+                                                        .status("SUCCESS")
+                                                        .build();
+                                                try{
+                                                    usageEventPublisher.publish(event);
+                                                }catch(Exception e){
+                                                    System.err.println("Failed to publish usage event, but continuing flow: " + e.getMessage());
+                                                }
+
                                                 //Forward to provider's real API
                                                 return forwardToProvider(exchange,baseUrl,endpointPath, providerApiKey);
                                             }
