@@ -11,7 +11,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +27,7 @@ public class ApiServiceImpl implements ApiService{
     private final ApiRepository apiRepository;
     private final EndpointRepository endpointRepository;
 
+    private final RestTemplate restTemplate;
 
     //Provider Operations
 
@@ -59,7 +64,16 @@ public class ApiServiceImpl implements ApiService{
     @Transactional
     public ApiDTO updateApiStatus(Long providerId, Long apiId, String status)
     {
+
         Api api = getOwnedApi(providerId, apiId);
+        if("ACTIVE".equalsIgnoreCase(status))
+        {
+            boolean reachable = verifyApiReachable(api.getBaseUrl());
+            if(!reachable)
+            {
+                throw new ResourceNotFoundException("API is not reachable at: " + api.getBaseUrl());
+            }
+        }
         api.setStatus(Api.Status.valueOf(status.toUpperCase()));
         return toDTO(apiRepository.save(api));
     }
@@ -226,6 +240,28 @@ public class ApiServiceImpl implements ApiService{
                 .isActive(ep.getIsActive())
                 .baseUrl(ep.getApi().getBaseUrl())
                 .build();
+    }
+
+    private boolean verifyApiReachable(String testUrl)
+    {
+        try{
+            ResponseEntity<String> response = restTemplate.getForEntity(testUrl, String.class);
+            //System.out.println(response.getStatusCode());
+            return response.getStatusCode().is2xxSuccessful() ||
+                    response.getStatusCode().is3xxRedirection();
+        }
+        catch (HttpStatusCodeException e)
+        {
+            System.out.println(e.getStatusCode());
+            return e.getStatusCode() == HttpStatus.UNAUTHORIZED;
+        }
+        catch (Exception e)
+        {
+            System.out.println("API reachable error "+ e.getMessage());
+            return false;
+        }
+
+
     }
 
 }
