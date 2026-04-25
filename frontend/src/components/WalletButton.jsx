@@ -1,3 +1,4 @@
+import { PlugZap } from 'lucide-react';
 import { useEffect } from 'react';
 import { useConnect, useAccount, useDisconnect } from 'wagmi';
 import { useAuth } from '../context/AuthContext';
@@ -54,6 +55,7 @@ export default function WalletButton() {
       className="btn-connect"
       onClick={() => connect({ connector: connectors[0] })}
     >
+      <PlugZap size={15} />
       Connect Wallet
     </button>
   );

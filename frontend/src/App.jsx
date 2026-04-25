@@ -20,10 +20,10 @@ function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<Landing />} />
+          <Route path='/marketplace' element={<Landing />} />
           <Route path='/auth/callback' element={<AuthCallback />} />
           <Route path='/marketplace/:id' element={<ApiDetail />} />
 
-          {/* Protected routes — require JWT */}
           <Route path='/sell' element={
             <ProtectedRoute><CreateListing /></ProtectedRoute>} />
           <Route path='/my-apis/:id/edit' element={

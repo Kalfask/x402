@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getMyEarnings } from '../services/api';
 import '../styles/dashboard.css';
@@ -18,20 +18,20 @@ export default function Earnings() {
     setLoading(false);
   };
 
-  if (loading) return <div style={{padding: '80px 40px', color: 'var(--fg2)'}}>Loading...</div>;
+  if (loading) return <div style={{ padding: '80px 40px', color: 'var(--fg2)' }}>Loading...</div>;
 
   return (
-    <div>
+    <div className="page-shell">
       <div className="page-header">
         <div>
           <h1 className="page-title">Earnings</h1>
-          <p className="page-sub">Revenue from your API listings</p>
+          <p className="page-sub">Revenue from your API listings.</p>
         </div>
       </div>
 
       <div className="earnings-grid">
         <div className="stat-cell">
-          <div className="stat-num" style={{color: 'var(--gold)'}}>
+          <div className="stat-num" style={{ color: 'var(--gold)' }}>
             {earnings?.totalEarnings || '0'} USDC
           </div>
           <div className="stat-label">Total earnings</div>
@@ -55,16 +55,19 @@ export default function Earnings() {
             <span>Tx Hash</span>
             <span>Date</span>
           </div>
-          {earnings.recentTransactions.map(tx => (
+          {earnings.recentTransactions.map((tx) => (
             <div key={tx.id} className="table-row five-col">
-              <span className="table-name">User #{tx.consumerId}</span>
-              <span style={{color: 'var(--gold)'}}>{tx.price} USDC</span>
+              <span className="table-name">
+                <span className="table-name-main">User #{tx.consumerId}</span>
+                <small className="table-name-sub">Paid call completed</small>
+              </span>
+              <span style={{ color: 'var(--gold)' }}>{tx.price} USDC</span>
               <span className={`table-status ${tx.status?.toLowerCase()}`}>{tx.status}</span>
               <span className="table-hash">
-                {tx.txHash ? `${tx.txHash.slice(0, 10)}...${tx.txHash.slice(-6)}` : '—'}
+                {tx.txHash ? `${tx.txHash.slice(0, 10)}...${tx.txHash.slice(-6)}` : '-'}
               </span>
               <span className="table-date">
-                {tx.calledAt ? new Date(tx.calledAt).toLocaleDateString() : '—'}
+                {tx.calledAt ? new Date(tx.calledAt).toLocaleDateString() : '-'}
               </span>
             </div>
           ))}

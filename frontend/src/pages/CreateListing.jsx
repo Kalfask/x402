@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { createApi, addEndpoint, updateApiStatus } from '../services/api';
 import '../styles/forms.css';
@@ -23,7 +24,7 @@ export default function CreateListing() {
   });
 
   const update = (field, value) =>
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   const goNext = () => {
     if (step < 3) setStep(step + 1);
@@ -66,21 +67,26 @@ export default function CreateListing() {
   const resetForm = () => {
     setStep(1);
     setForm({
-      name: '', description: '', baseUrl: '', category: 'AI',
-      endpointPath: '', endpointMethod: 'POST', pricePerCall: '', endpointDesc: '',
+      name: '',
+      description: '',
+      baseUrl: '',
+      category: 'AI',
+      endpointPath: '',
+      endpointMethod: 'POST',
+      pricePerCall: '',
+      endpointDesc: '',
     });
     setError(null);
   };
 
   const previewTitle = form.name || 'Your listing title';
   const previewDesc = form.description || 'Your description will appear here.';
-  const previewPrice = form.pricePerCall ? `${form.pricePerCall} USDC` : '\u2014';
+  const previewPrice = form.pricePerCall ? `${form.pricePerCall} USDC` : '-';
 
   return (
-    <div className="shell">
-
+    <div className="shell page-shell">
       <div className="top-bar">
-        <span className="logo">X\u2014402</span>
+        <span className="logo">x402</span>
         <span className="top-label">New listing</span>
         <span className="top-label">Step {Math.min(step, 3)} of 3</span>
       </div>
@@ -92,12 +98,12 @@ export default function CreateListing() {
       {step <= 3 && (
         <div className="stepper">
           {[
-            { num: 1, title: 'API Details', sub: 'Name, URL & category' },
-            { num: 2, title: 'Endpoint', sub: 'Path, method & price' },
-            { num: 3, title: 'Review', sub: 'Confirm & publish' },
-          ].map(s => (
+            { num: 1, title: 'API Details', sub: 'Name, URL, and category' },
+            { num: 2, title: 'Endpoint', sub: 'Path, method, and price' },
+            { num: 3, title: 'Review', sub: 'Confirm and publish' },
+          ].map((s) => (
             <div key={s.num} className={`step ${step === s.num ? 'active' : ''} ${step > s.num ? 'done' : ''}`}>
-              <div className="step-num">{step > s.num ? '\u2713' : s.num}</div>
+              <div className="step-num">{step > s.num ? '✓' : s.num}</div>
               <div className="step-info"><p>{s.title}</p><span>{s.sub}</span></div>
             </div>
           ))}
@@ -108,21 +114,21 @@ export default function CreateListing() {
         <div className="form-body">
           <div className="field-row">
             <label className="field-label">API name</label>
-            <input type="text" placeholder="e.g. Real-time DeFi price feed" value={form.name} onChange={e => update('name', e.target.value)} />
+            <input type="text" placeholder="e.g. Real-time DeFi price feed" value={form.name} onChange={(e) => update('name', e.target.value)} />
           </div>
           <div className="field-row">
             <label className="field-label">Description</label>
-            <textarea placeholder="Describe what your API does, who it's for, and what makes it unique..." value={form.description} onChange={e => update('description', e.target.value)} />
+            <textarea placeholder="Describe what your API does, who it's for, and what makes it unique..." value={form.description} onChange={(e) => update('description', e.target.value)} />
           </div>
           <div className="field-row">
             <label className="field-label">Base URL</label>
-            <input type="text" placeholder="https://your-api-server.com/api" value={form.baseUrl} onChange={e => update('baseUrl', e.target.value)} />
-            <p className="field-hint">The root URL where your API is hosted</p>
+            <input type="text" placeholder="https://your-api-server.com/api" value={form.baseUrl} onChange={(e) => update('baseUrl', e.target.value)} />
+            <p className="field-hint">The root URL where your API is hosted.</p>
           </div>
           <div className="field-row">
             <label className="field-label">Category</label>
             <div className="type-cards">
-              {CATEGORIES.map(cat => (
+              {CATEGORIES.map((cat) => (
                 <div key={cat} className={`type-card ${form.category === cat ? 'sel' : ''}`} onClick={() => update('category', cat)}>
                   <p>{cat}</p>
                 </div>
@@ -137,12 +143,12 @@ export default function CreateListing() {
           <div className="grid2">
             <div className="field-row">
               <label className="field-label">Endpoint path</label>
-              <input type="text" placeholder="/v1/generate" value={form.endpointPath} onChange={e => update('endpointPath', e.target.value)} />
-              <p className="field-hint">The path after your base URL</p>
+              <input type="text" placeholder="/v1/generate" value={form.endpointPath} onChange={(e) => update('endpointPath', e.target.value)} />
+              <p className="field-hint">The path after your base URL.</p>
             </div>
             <div className="field-row">
               <label className="field-label">HTTP method</label>
-              <select value={form.endpointMethod} onChange={e => update('endpointMethod', e.target.value)}>
+              <select value={form.endpointMethod} onChange={(e) => update('endpointMethod', e.target.value)}>
                 <option>GET</option>
                 <option>POST</option>
                 <option>PUT</option>
@@ -153,12 +159,12 @@ export default function CreateListing() {
           </div>
           <div className="field-row">
             <label className="field-label">Endpoint description</label>
-            <textarea placeholder="What does this endpoint do? What parameters does it accept?" value={form.endpointDesc} onChange={e => update('endpointDesc', e.target.value)} />
+            <textarea placeholder="What does this endpoint do? What parameters does it accept?" value={form.endpointDesc} onChange={(e) => update('endpointDesc', e.target.value)} />
           </div>
           <div className="field-row">
             <label className="field-label">Price per call (USDC)</label>
-            <input type="number" placeholder="0.001" step="0.0001" min="0" value={form.pricePerCall} onChange={e => update('pricePerCall', e.target.value)} />
-            <p className="field-hint">Consumers pay this amount in USDC on Base Sepolia for each API call</p>
+            <input type="number" placeholder="0.001" step="0.0001" min="0" value={form.pricePerCall} onChange={(e) => update('pricePerCall', e.target.value)} />
+            <p className="field-hint">Consumers pay this amount in USDC on Base Sepolia for each request.</p>
           </div>
         </div>
       )}
@@ -167,7 +173,7 @@ export default function CreateListing() {
         <div className="form-body">
           <div className="grid2">
             <div>
-              <p className="field-label" style={{ marginBottom: 16 }}>Listing preview</p>
+              <p className="field-label preview-label">Listing preview</p>
               <div className="preview-card">
                 <div className="preview-header">
                   <span>{form.category}</span>
@@ -180,7 +186,7 @@ export default function CreateListing() {
                   <div className="preview-footer">
                     <div>
                       <div className="preview-price">{previewPrice}</div>
-                      <div className="preview-price-sub">per call</div>
+                      <div className="preview-price-sub">starts at</div>
                     </div>
                     <div className="preview-chain">
                       <span className="cd" style={{ background: '#2775ca', opacity: 1 }} />
@@ -190,38 +196,40 @@ export default function CreateListing() {
                 </div>
               </div>
             </div>
+
             <div>
-              <p className="field-label" style={{ marginBottom: 16 }}>Summary</p>
+              <p className="field-label preview-label">Summary</p>
               <table className="summary-table">
                 <tbody>
-                  <tr><td className="sum-label">API name</td><td className="sum-value">{form.name || '\u2014'}</td></tr>
+                  <tr><td className="sum-label">API name</td><td className="sum-value">{form.name || '-'}</td></tr>
                   <tr><td className="sum-label">Category</td><td className="sum-value">{form.category}</td></tr>
-                  <tr><td className="sum-label">Base URL</td><td className="sum-value">{form.baseUrl || '\u2014'}</td></tr>
-                  <tr><td className="sum-label">Endpoint</td><td className="sum-value">{form.endpointMethod} {form.endpointPath || '\u2014'}</td></tr>
-                  <tr><td className="sum-label">Price</td><td className="sum-value" style={{ color: 'var(--gold)' }}>{previewPrice}</td></tr>
+                  <tr><td className="sum-label">Base URL</td><td className="sum-value">{form.baseUrl || '-'}</td></tr>
+                  <tr><td className="sum-label">Endpoint</td><td className="sum-value">{form.endpointMethod} {form.endpointPath || '-'}</td></tr>
+                  <tr><td className="sum-label">Price</td><td className="sum-value sum-value-accent">{previewPrice}</td></tr>
                   <tr><td className="sum-label">Network</td><td className="sum-value">Base Sepolia</td></tr>
                   <tr><td className="sum-label">Currency</td><td className="sum-value">USDC</td></tr>
                 </tbody>
               </table>
               <div className="publish-note">
                 <p className="publish-note-title">Publishing</p>
-                <p className="publish-note-text">Your API will be listed on the marketplace immediately and start accepting USDC payments on Base Sepolia.</p>
+                <p className="publish-note-text">Your API will be listed immediately and become callable through the payment flow.</p>
               </div>
             </div>
           </div>
+
           {error && (
-            <div style={{ marginTop: 20, padding: 16, border: '0.5px solid var(--red)', color: 'var(--red)', fontSize: 13 }}>{error}</div>
+            <div className="inline-error block-error">{error}</div>
           )}
         </div>
       )}
 
       {step === 4 && (
         <div className="success-screen">
-          <div className="success-icon">\u2713</div>
+          <div className="success-icon"><CheckCircle2 size={22} /></div>
           <h2 className="success-title">Listing published.</h2>
-          <p className="success-sub">Your API is now live on the x402 marketplace and accepting payments.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <button className="btn-next" onClick={() => window.location.href = '/my-apis'}>View my APIs \u2197</button>
+          <p className="success-sub">Your API is now live on the x402 marketplace and ready to accept payments.</p>
+          <div className="inline-actions center wrap">
+            <button className="btn-next" onClick={() => { window.location.href = '/my-apis'; }}>View my APIs</button>
             <button className="btn-back" onClick={resetForm}>Create another listing</button>
           </div>
         </div>
@@ -229,13 +237,22 @@ export default function CreateListing() {
 
       {step <= 3 && (
         <div className="form-actions">
-          <button className="btn-back" onClick={goBack} style={{ visibility: step > 1 ? 'visible' : 'hidden' }}>\u2190 Back</button>
+          <button className="btn-back btn-link" onClick={goBack} style={{ visibility: step > 1 ? 'visible' : 'hidden' }}>
+            <ArrowLeft size={15} />
+            <span>Back</span>
+          </button>
           <button className={`btn-next ${step === 3 ? 'gold' : ''}`} onClick={goNext} disabled={submitting}>
-            {submitting ? 'Publishing...' : step === 3 ? 'Publish listing \u2192' : 'Continue \u2192'}
+            {submitting ? (
+              'Publishing...'
+            ) : (
+              <>
+                <span>{step === 3 ? 'Publish listing' : 'Continue'}</span>
+                {step === 3 ? <Plus size={15} /> : <ArrowRight size={15} />}
+              </>
+            )}
           </button>
         </div>
       )}
-
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Coins, Layers3, Search, ShieldCheck, WalletCards } from 'lucide-react';
 import { getMarketplace } from '../services/api';
 import ListingCard from '../components/ListingCard';
 import '../styles/marketplace.css';
@@ -9,88 +10,166 @@ const CATEGORIES = ['All', 'AI', 'Data', 'Finance', 'Media', 'Software'];
 export default function Landing() {
   const [apis, setApis] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     loadApis();
-  }, [activeFilter]);
+  }, [activeFilter, query]);
 
   const loadApis = async () => {
     const category = activeFilter === 'All' ? null : activeFilter;
-    const data = await getMarketplace(null, category);
+    const search = query.trim() || null;
+    const data = await getMarketplace(search, category);
     if (data.data) setApis(data.data);
   };
 
   return (
-    <>
-      <div className="hero">
-        <div>
-          <div className="hero-label">x402 Protocol — Onchain commerce</div>
-          <h1 className="hero-title">
-            Commerce that<br />doesn't ask<br />for <em>permission.</em>
+    <div className="page-shell landing-shell">
+      <section className="hero hero-minimal">
+        <div className="hero-copy">
+          <div className="hero-label">x402 marketplace</div>
+          <h1 className="hero-title hero-title-tight">
+            Paid APIs with a
+            <br />
+            product-grade buyer flow.
           </h1>
-          <p className="hero-sub">
-            A peer-to-peer API marketplace powered by HTTP 402 payments.
-            No middlemen. No custodians. Instant settlement in USDC.
+          <p className="hero-sub hero-sub-tight">
+            Browse endpoints, pay in USDC, and test responses inside one clear interface.
+            For providers, listings, usage, earnings, and keys stay under the same roof.
           </p>
+
           <div className="hero-actions">
-            <Link to="/sell"><button className="btn-primary">Start selling →</button></Link>
-            <Link to="/marketplace"><button className="btn-ghost">Browse APIs</button></Link>
+            <Link to="/sell" className="btn-primary btn-link">
+              <span>List your API</span>
+              <ArrowRight size={15} />
+            </Link>
+            <Link to="/marketplace" className="btn-ghost btn-link">Browse marketplace</Link>
+          </div>
+
+          <div className="hero-highlights">
+            <div className="hero-highlight">
+              <ShieldCheck size={16} />
+              <span>GitHub auth</span>
+            </div>
+            <div className="hero-highlight">
+              <WalletCards size={16} />
+              <span>Wallet-linked access</span>
+            </div>
+            <div className="hero-highlight">
+              <Coins size={16} />
+              <span>USDC settlement</span>
+            </div>
           </div>
         </div>
-        <div>
-          <div className="stat-grid">
+
+        <div className="hero-panel hero-panel-quiet">
+          <div className="hero-panel-head">
+            <span className="panel-kicker">Payment flow</span>
+          </div>
+
+          <div className="flow-stack">
+            <div className="flow-row">
+              <span className="flow-step">01</span>
+              <div>
+                <strong>Inspect the API</strong>
+                <p>Read the listing, see endpoints, pricing, and request shape before you touch checkout.</p>
+              </div>
+            </div>
+            <div className="flow-row">
+              <span className="flow-step">02</span>
+              <div>
+                <strong>Authenticate and pay</strong>
+                <p>Use GitHub login, connect a wallet, or fall back to transaction-hash verification.</p>
+              </div>
+            </div>
+            <div className="flow-row">
+              <span className="flow-step">03</span>
+              <div>
+                <strong>Call and monitor</strong>
+                <p>Test the response, then move into API keys, usage history, and provider-side earnings.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-grid stat-grid-quiet">
             <div className="stat-cell">
               <div className="stat-num">{apis.length}</div>
-              <div className="stat-label">Listed APIs</div>
-            </div>
-            <div className="stat-cell">
-              <div className="stat-num">USDC</div>
-              <div className="stat-label">Currency</div>
+              <div className="stat-label">Live listings</div>
             </div>
             <div className="stat-cell">
               <div className="stat-num">&lt;2s</div>
-              <div className="stat-label">Settlement</div>
-            </div>
-            <div className="stat-cell">
-              <div className="stat-num">Base</div>
-              <div className="stat-label">Network</div>
+              <div className="stat-label">Settlement target</div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="section-header">
-        <span className="section-title">Available APIs</span>
-      </div>
+      <section className="workspace-strip">
+        <article className="workspace-card">
+          <span className="section-title">For buyers</span>
+          <h3>Find a paid endpoint and test it without leaving the product.</h3>
+          <p>Marketplace browsing, request setup, payment, and response inspection stay connected.</p>
+        </article>
+        <article className="workspace-card">
+          <span className="section-title">For providers</span>
+          <h3>Publish once, then manage the business side from the same interface.</h3>
+          <p>Listings, statuses, usage, earnings, wallet links, and API keys stay close to the product itself.</p>
+        </article>
+      </section>
 
-      <div className="filters">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat}
-            className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
-            onClick={() => setActiveFilter(cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      <section className="section-header section-header-rich">
+        <div>
+          <span className="section-title">Marketplace</span>
+          <h2 className="section-heading">Available APIs</h2>
+        </div>
+        <div className="section-meta">
+          <Layers3 size={16} />
+          <span>{apis.length} listings</span>
+        </div>
+      </section>
 
-      <div className="listings">
+      <section className="filters-toolbar">
+        <label className="search-shell">
+          <Search size={16} />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search APIs or categories"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+
+        <div className="filters">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
+              onClick={() => setActiveFilter(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="listings">
         {apis.length > 0 ? (
-          apis.map(api => (
-            <Link to={`/marketplace/${api.id}`} key={api.id}>
+          apis.map((api) => (
+            <Link to={`/marketplace/${api.id}`} key={api.id} className="listing-link">
               <ListingCard api={api} />
             </Link>
           ))
         ) : (
-          <div style={{
-            padding: '60px 40px', color: 'var(--fg2)',
-            fontSize: 14, gridColumn: '1 / -1', textAlign: 'center'
-          }}>
-            No APIs listed yet. Be the first to sell!
+          <div className="empty-panel">
+            <p>No APIs match this filter yet.</p>
+            <Link to="/sell" className="btn-primary btn-link">
+              <span>Create the first listing</span>
+              <ArrowRight size={15} />
+            </Link>
           </div>
         )}
-      </div>
-    </>
+      </section>
+    </div>
   );
 }
