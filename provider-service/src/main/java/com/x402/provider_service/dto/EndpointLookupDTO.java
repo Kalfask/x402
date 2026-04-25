@@ -5,13 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EndpointLookupDTO {
+public class EndpointLookupDTO implements Serializable {
     private Long id;
     private Long providerId;
     private Long apiId;

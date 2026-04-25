@@ -9,6 +9,8 @@ import com.x402.common.dto.UserDTO;
 import com.x402.common.exceptions.ResourceNotFoundException;
 import com.x402.common.exceptions.UnauthorizedException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class UserService {
     private static final String WALLET_REGEX = "^0x[a-fA-F0-9]{40}$";
     private static final Pattern WALLET_PATTERN = Pattern.compile(WALLET_REGEX);
 
+    @Cacheable(value = "wallet-lookup", key = "#id")
     public UserDTO getUserById(Long id)
     {
         User user = userRepository.findById(id)
@@ -82,6 +85,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = "wallet-lookup", key = "#userId")
     public UserDTO linkWallet(Long userId, String walletAddress)
     {
 

@@ -9,9 +9,11 @@ import com.x402.payment_service.repository.UsageLogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,36 +25,59 @@ public class UsageService {
     private final UsageLogRepository usageLogRepository;
     private final BlockchainService blockchainService;
 
+    private final StringRedisTemplate stringRedisTemplate;
+
     public VerifyPaymentResponse verifyAndLog(VerifyPaymentRequest req) {
 
-        if(usageLogRepository.findByTxHash(req.getTxHash()).isPresent()){
+        String lockKey = "lock:tx" + req.getTxHash();
+
+        Boolean isNew = stringRedisTemplate.opsForValue()
+                .setIfAbsent(lockKey, "PROCESSING", Duration.ofMinutes(2));
+
+        if (Boolean.FALSE.equals(isNew)) {
+            log.warn("Replay attempt blocked by Redis: {}", req.getTxHash());
             return VerifyPaymentResponse.builder()
                     .valid(false)
-                    .reason("Transaction already used")
+                    .reason("Transaction is currently being processed or was recently submitted.")
                     .build();
         }
+        try {
 
-        boolean valid = blockchainService.verifyPayment(req.getTxHash(), req.getProviderWallet(),req.getExpectedAmount());
 
-        UsageLog usageLog = UsageLog.builder()
-                .consumerId(req.getConsumerId())
-                .endpointId(req.getEndpointId())
-                .apiId(req.getApiId())
-                .providerId(req.getProviderId())
-                .price(req.getExpectedAmount())
-                .txHash(req.getTxHash())
-                .status(valid? UsageLog.PaymentStatus.CONFIRMED
-                        : UsageLog.PaymentStatus.FAILED)
-                .build();
+            if (usageLogRepository.findByTxHash(req.getTxHash()).isPresent()) {
+                return VerifyPaymentResponse.builder()
+                        .valid(false)
+                        .reason("Transaction already used")
+                        .build();
+            }
 
-        usageLogRepository.save(usageLog);
+            boolean valid = blockchainService.verifyPayment(req.getTxHash(), req.getProviderWallet(), req.getExpectedAmount());
 
-        return VerifyPaymentResponse.builder()
-                .valid(valid)
-                .reason(valid ? "Payment verified": "Verification failed")
-                .build();
+            UsageLog usageLog = UsageLog.builder()
+                    .consumerId(req.getConsumerId())
+                    .endpointId(req.getEndpointId())
+                    .apiId(req.getApiId())
+                    .providerId(req.getProviderId())
+                    .price(req.getExpectedAmount())
+                    .txHash(req.getTxHash())
+                    .status(valid ? UsageLog.PaymentStatus.CONFIRMED
+                            : UsageLog.PaymentStatus.FAILED)
+                    .build();
 
+            usageLogRepository.save(usageLog);
+
+            return VerifyPaymentResponse.builder()
+                    .valid(valid)
+                    .reason(valid ? "Payment verified" : "Verification failed")
+                    .build();
+
+        }
+        catch (Exception e) {
+            stringRedisTemplate.delete(lockKey);
+            throw e;
+        }
     }
+
 
     public List<UsageLogDTO> getMyUsage(Long consumerId){
         return usageLogRepository.findByConsumerIdOrderByCalledAtDesc(consumerId).stream().map(this ::toDTO).collect(Collectors.toList());

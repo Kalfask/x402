@@ -9,6 +9,8 @@ import com.x402.provider_service.repository.ApiRepository;
 import com.x402.provider_service.repository.EndpointRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -95,6 +97,7 @@ public class ApiServiceImpl implements ApiService{
 
     @Override
     @Transactional
+    @CacheEvict(value = "endpoint-lookup", key = "#endpointId")
     public EndpointDTO updateEndpoint(Long providerId, Long endpointId, UpdateEndpointRequest request)
     {
         Endpoint endpoint = getOwnedEndpoint(providerId, endpointId);
@@ -107,6 +110,7 @@ public class ApiServiceImpl implements ApiService{
         return toEndpointDTO(endpointRepository.save(endpoint));
     }
 
+    @CacheEvict(value = "endpoint-lookup", key = "#endpointId")
     public void deleteEndpoint(Long providerId, Long endpointId)
     {
         Endpoint endpoint = getOwnedEndpoint(providerId, endpointId);
@@ -170,6 +174,7 @@ public class ApiServiceImpl implements ApiService{
         return ep;
     }
     @Override
+    @Cacheable(value = "endpoint-lookup", key = "#endpointId")
     public EndpointLookupDTO getEndpointLookup(Long endpointId)
     {
         Endpoint endpoint = endpointRepository.findById(endpointId).orElseThrow(() -> new RuntimeException("Endpoint not found"));
