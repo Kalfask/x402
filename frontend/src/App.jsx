@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import AuthCallback from './pages/AuthCallBack';
 import ApiDetail from './pages/ApiDetail';
+//import Developers from './pages/Developers';
 import CreateListing from './pages/CreateListing';
 import MyApis from './pages/MyApis';
 import Usage from './pages/Usage';
@@ -20,6 +21,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<Landing />} />
+          <Route path='/marketplace' element={<Landing />} />
           <Route path='/auth/callback' element={<AuthCallback />} />
           <Route path='/marketplace/:id' element={<ApiDetail />} />
 

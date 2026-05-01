@@ -1,37 +1,156 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 :root {
- --bg: #0a0a0a;
- --bg2: #111;
- --bg3: #161616;
- --fg: #f0ede6;
- --fg2: #888;
- --fg3: #444;
- --accent: #e8e0d0;
- --gold: #c9a85c;
- --border: #222;
- --border2: #333;
- --green: #4caf7a;
- --red: #e05050;
- --font: 'Inter', sans-serif;
+  color-scheme: light;
+  --bg: #f7f5ef;
+  --bg2: #ffffff;
+  --bg3: #ece8dd;
+  --ink: #12110f;
+  --fg: #12110f;
+  --fg2: #64605a;
+  --fg3: #9a9388;
+  --muted: #dfd9cc;
+  --border: #d8d1c2;
+  --border2: #b9b0a1;
+  --accent: #12110f;
+  --gold: #7a5d28;
+  --green: #137a4b;
+  --red: #b43f33;
+  --blue: #2458d3;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--fg); font-family: var(--font); overflow-x: hidden; }
-a { text-decoration: none; color: inherit; }
-/* Reusable button classes */
-.btn-primary {
- font-size: 12px; padding: 12px 28px; background: var(--fg); color: var(--bg);
- border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase;
- font-weight: 500; font-family: var(--font); border-radius: 2px; transition: opacity 0.2s;
+
+* {
+  box-sizing: border-box;
 }
-.btn-primary:hover { opacity: 0.85; }
-.btn-ghost {
- font-size: 12px; padding: 12px 28px; background: transparent; color: var(--fg);
- border: 0.5px solid var(--border2); cursor: pointer; letter-spacing: 0.1em;
- text-transform: uppercase; font-family: var(--font); border-radius: 2px;
+
+html {
+  scroll-behavior: smooth;
 }
-.btn-ghost:hover { border-color: var(--fg3); }
-.btn-gold {
- font-size: 12px; padding: 12px 28px; background: var(--gold); color: #0a0a0a;
- border: none; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase;
- font-weight: 500; font-family: var(--font); border-radius: 2px;
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(18, 17, 15, 0.035) 1px, transparent 1px);
+  background-size: 100% 32px;
+  opacity: 0.45;
+  z-index: -1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border-radius: 4px;
+}
+
+.btn-primary,
+.btn-ghost,
+.btn-gold,
+.btn-connect,
+.btn-next,
+.btn-back,
+.btn-small,
+.btn-small-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.btn-primary,
+.btn-connect,
+.btn-next,
+.btn-small {
+  background: var(--ink);
+  color: var(--bg2);
+  padding: 0 20px;
+}
+
+.btn-primary:hover,
+.btn-connect:hover,
+.btn-next:hover,
+.btn-small:hover {
+  background: #2b2925;
+  transform: translateY(-1px);
+}
+
+.btn-ghost,
+.btn-back,
+.btn-small-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--border2);
+  padding: 0 18px;
+}
+
+.btn-ghost:hover,
+.btn-back:hover,
+.btn-small-ghost:hover {
+  border-color: var(--ink);
+  background: var(--bg2);
+}
+
+.btn-gold,
+.btn-next.gold {
+  background: #f2d675;
+  color: var(--ink);
+  border-color: #d7b84d;
+  padding: 0 20px;
+}
+
+.btn-gold:hover,
+.btn-next.gold:hover {
+  background: #e8c95c;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bg2);
+}
+
+@media (max-width: 760px) {
+  .btn-primary,
+  .btn-ghost,
+  .btn-gold,
+  .btn-connect,
+  .btn-next,
+  .btn-back {
+    width: 100%;
+  }
 }
