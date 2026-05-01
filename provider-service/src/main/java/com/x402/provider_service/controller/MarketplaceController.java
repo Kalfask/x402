@@ -1,10 +1,12 @@
 package com.x402.provider_service.controller;
 
 import com.x402.common.dto.ApiResponse;
+import com.x402.common.security.ApiKeyValidator;
 import com.x402.provider_service.dto.ApiDTO;
 import com.x402.provider_service.dto.EndpointDTO;
 import com.x402.provider_service.dto.EndpointLookupDTO;
 import com.x402.provider_service.entity.Api;
+import com.x402.provider_service.entity.Endpoint;
 import com.x402.provider_service.repository.ApiRepository;
 import com.x402.provider_service.service.ApiService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -23,6 +26,7 @@ import java.util.List;
 public class MarketplaceController {
 
     private final ApiService apiService;
+    private final ApiKeyValidator  apiKeyValidator;
 
     @Value("${app.internal.key}")
     private String int_key;
@@ -55,6 +59,38 @@ public class MarketplaceController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("Invalid internal key", "FORBIDDEN"));
         }
 
+    }
+
+   @GetMapping("/findId")
+    public ResponseEntity<ApiResponse<Long>> findId(
+            @RequestParam String name,
+            @RequestHeader("X-Api-Key")  String apiKey)
+    {
+            if(apiKeyValidator.isValid(apiKey))
+            {
+                Long apiId = apiService.getApiIdByName(name);
+                return ResponseEntity.ok(ApiResponse.ok(apiId));
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("Invalid Api Key", "FORBIDDEN"));
+            }
+
+    }
+
+    @PostMapping("/findEndpointId")
+    public ResponseEntity<ApiResponse<Long>> findEndpointIdByApiNameAndEndpointPath(
+            @RequestBody Map<String,String> body,
+            @RequestHeader("X-Api-key") String apiKey) {
+        if (apiKeyValidator.isValid(apiKey)) {
+            Long apiId = apiService.getApiIdByName(body.get("name"));
+            Long  endpointId = apiService.getEndpointIdByApiIdAndEndpointPath(apiId, body.get("path"));
+            return ResponseEntity.ok(ApiResponse.ok(endpointId));
+        }
+        else
+        {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("Invalid Api Key", "FORBIDDEN"));
+        }
     }
 
     @GetMapping("/health")

@@ -15,4 +15,6 @@ public interface EndpointRepository extends JpaRepository<Endpoint, Long> {
 
     //find only active endpoints for an API
     List<Endpoint> findByApiIdAndIsActive(Long ApiId, Boolean isActive);
+
+    Endpoint findByApiIdAndPath(Long ApiId, String endpointPath);
 }

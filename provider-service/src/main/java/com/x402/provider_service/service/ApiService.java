@@ -27,4 +27,8 @@ public interface ApiService {
     EndpointDTO getEndpointById(Long endpointId);
 
     EndpointLookupDTO getEndpointLookup( Long endpointId);
+
+    Long getApiIdByName(String name);
+
+    Long getEndpointIdByApiIdAndEndpointPath(Long apiId, String endpointPath);
 }

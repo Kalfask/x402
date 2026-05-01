@@ -204,6 +204,20 @@ public class ApiServiceImpl implements ApiService{
                 .build();
     }
 
+    @Override
+    public Long getApiIdByName(String name)
+    {
+        Api api = apiRepository.findApiIdByName(name);
+        return api.getId();
+    }
+
+    @Override
+    public Long getEndpointIdByApiIdAndEndpointPath(Long apiId, String endpointPath)
+    {
+        Endpoint endpoint = endpointRepository.findByApiIdAndPath(apiId, endpointPath);
+        return endpoint.getId();
+    }
+
     private ApiDTO toPublicDTO(Api api)
     {
         ApiDTO dto = toDTO(api);

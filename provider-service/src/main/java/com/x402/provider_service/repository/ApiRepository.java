@@ -19,4 +19,6 @@ public interface ApiRepository extends JpaRepository<Api, Long> {
     List<Api> findByStatusAndNameContainingIgnoreCase(Api.Status status, String name);
 
     List<Api> findByStatusAndCategory(Api.Status status, String category);
+
+    Api findApiIdByName(String name);
 }
