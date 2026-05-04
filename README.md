@@ -341,4 +341,4 @@ MIT
 
 ---
 
-Built by Kostas ([@kodaku12](https://github.com/kodaku12)) as a learning project at the University of Macedonia, Department of Applied Informatics.
+Built by Kostas ([@kodaku12](https://github.com/Kalfask)) as a learning project at the University of Macedonia, Department of Applied Informatics.
