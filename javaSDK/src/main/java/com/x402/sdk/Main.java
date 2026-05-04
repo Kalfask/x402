@@ -8,7 +8,7 @@ public class Main {
         // 1. Initialize the SDK (Just like a developer would)
         x402Client client = new x402Client.Builder()
                 .apiKey("x402_sk_HKyJkh_TQ9Jd9_sRhkBfHxcAEeKZIpi4z5NQz5L1qZg")
-                .privateKey("0e75522738a68a26fda7e3925a0ee441f5d218b50232ff087152343211af2dd4")
+                .privateKey("privatekey")
                 .gatewayUrl("http://localhost:8080") // Your Spring Boot Gateway
                 .rpcUrl("https://sepolia.base.org")  // Base Sepolia
                 .build();

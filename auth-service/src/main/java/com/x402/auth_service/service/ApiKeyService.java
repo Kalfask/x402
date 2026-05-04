@@ -3,6 +3,7 @@ package com.x402.auth_service.service;
 import com.x402.auth_service.entity.ConsumerApiKey;
 import com.x402.auth_service.repository.ConsumerApiKeyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -15,6 +16,7 @@ import java.util.List;
 public class ApiKeyService {
 
     private final ConsumerApiKeyRepository repo;
+    private final PasswordEncoder passwordEncoder;
 
     private static final int MAX_KEYS_PER_USER = 20;
 
@@ -24,23 +26,45 @@ public class ApiKeyService {
 
         String key = generateKey();
 
+        String keyPrefix = key.substring(0, 16) + "...";
+
+        String hashedKey = passwordEncoder.encode(key);
+
         ConsumerApiKey apiKey =  ConsumerApiKey
                 .builder()
                 .userId(userId)
+                .apiKey(hashedKey)
+                .keyPrefix(keyPrefix)
+                .name(name)
+                .build();
+            ConsumerApiKey savedApiKey = repo.save(apiKey);
+        ConsumerApiKey ApiKeyDto = ConsumerApiKey
+                .builder()
+                .id(savedApiKey.getId())
+                .userId(userId)
                 .apiKey(key)
+                .keyPrefix(keyPrefix)
                 .name(name)
                 .build();
 
-        return  repo.save(apiKey);
+        return ApiKeyDto;
     }
 
-    public List<ConsumerApiKey> getMyKeys(Long userId) {
+
+    public List<ConsumerApiKey> getMyKeys(Long userId)
+    {
+
         return  repo.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+
+
     public ConsumerApiKey validateKey(String key)
     {
-        ConsumerApiKey apiKey = repo.findByApiKeyAndActiveTrue(key)
+        ConsumerApiKey apiKey = repo.findByActiveTrue()
+                .stream()
+                .filter(k->passwordEncoder.matches(key,k.getApiKey()))
+                .findFirst()
                 .orElse(null);
 
         if(apiKey != null)

@@ -29,6 +29,9 @@ public class ConsumerApiKey {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, length = 32)
+    private String keyPrefix;
+
     @Builder.Default
     private boolean active = true;
 

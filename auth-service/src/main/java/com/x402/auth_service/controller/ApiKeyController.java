@@ -41,7 +41,7 @@ public class ApiKeyController {
                 .stream().map(k-> Map.<String,Object>of(
                         "id", k.getId(),
                         "name", k.getName(),
-                        "prefix", k.getApiKey().substring(0, 16) + "...",
+                        "prefix", k.getKeyPrefix(),
                         "active", k.isActive(),
                         "createdAt", k.getCreatedAt().toString(),
                         "lastUsedAt", k.getLastUsedAt() != null

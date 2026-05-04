@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface ConsumerApiKeyRepository extends JpaRepository<ConsumerApiKey, Long> {
 
-    Optional<ConsumerApiKey> findByApiKeyAndActiveTrue(String apiKey);
+    List<ConsumerApiKey> findByActiveTrue();
 
     List<ConsumerApiKey> findByUserIdOrderByCreatedAtDesc(Long userId);
 
