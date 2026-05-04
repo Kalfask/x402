@@ -6,11 +6,19 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["x402", "api", "marketplace", "usdc", "crypto", "web3"],
+  "keywords": [
+    "x402",
+    "api",
+    "marketplace",
+    "usdc",
+    "crypto",
+    "web3"
+  ],
   "author": "KalfasK",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "ethers": "^6.16.0"
   }
 }

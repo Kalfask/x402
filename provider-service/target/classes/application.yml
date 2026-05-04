@@ -18,3 +18,15 @@ spring:
 app:
   jwt.secret: ${JWT_SECRET}
   internal.key: ${INTERNAL_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: 'true'
+  metrics:
+    tags:
+      application: ${spring.application.name}

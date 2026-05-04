@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 1. Your SDK's Global Identity -->
+    <groupId>com.x402</groupId>
+    <artifactId>x402-java-sdk</artifactId>
+    <version>1.0.0</version>
+
+    <!-- This tells Maven to bundle your code into a library (.jar), not an app -->
+    <packaging>jar</packaging>
+
+    <properties>
+        <!-- 2. We require Java 11 or higher to use the modern HTTP Client -->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- 3. Web3j: The core cryptography and blockchain engine -->
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>core</artifactId>
+            <version>4.10.3</version>
+        </dependency>
+    </dependencies>
+
+</project>
