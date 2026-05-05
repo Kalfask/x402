@@ -47,7 +47,8 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
         if(apikeyHeader!=null)
         {
             return webClient.get()
-                    .uri("http://localhost:8081/api/auth/validate-key?apiKey="+apikeyHeader)
+                    .uri("http://localhost:8081/api/auth/validate-key")
+                    .header("X-Api-Key",apikeyHeader)
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .flatMap(

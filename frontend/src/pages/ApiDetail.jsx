@@ -18,6 +18,7 @@ export default function ApiDetail() {
   const [txHash, setTxHash] = useState('');
   const [activeEndpoint, setActiveEndpoint] = useState(null);
   const [requestBody, setRequestBody] = useState('');
+  const [copiedResponse, setCopiedResponse] = useState(false);
 
   useEffect(() => {
     loadApi();
@@ -27,6 +28,15 @@ export default function ApiDetail() {
     const data = await getApiDetail(id);
     if (data.data) setApi(data.data);
     setPageLoading(false);
+  };
+
+  const formatResponse = (response) => JSON.stringify(response, null, 2);
+
+  const copyResponse = async () => {
+    if (!apiResponse) return;
+    await navigator.clipboard.writeText(formatResponse(apiResponse));
+    setCopiedResponse(true);
+    setTimeout(() => setCopiedResponse(false), 1600);
   };
 
   // Auto pay: MetaMask pops up automatically
@@ -166,9 +176,14 @@ export default function ApiDetail() {
             {/* API Response */}
             {apiResponse && activeEndpoint?.id === ep.id && (
               <div className="api-response">
-                <div className="payment-box-title">API Response</div>
+                <div className="response-top">
+                  <div className="payment-box-title">API Response</div>
+                  <button className="btn-small-ghost" onClick={copyResponse}>
+                    {copiedResponse ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
                 <pre className="response-pre">
-                  {JSON.stringify(apiResponse, null, 2)}
+                  {formatResponse(apiResponse)}
                 </pre>
               </div>
             )}

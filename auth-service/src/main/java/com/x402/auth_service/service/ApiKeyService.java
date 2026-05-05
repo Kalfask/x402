@@ -19,6 +19,7 @@ public class ApiKeyService {
     private final PasswordEncoder passwordEncoder;
 
     private static final int MAX_KEYS_PER_USER = 20;
+    private static final int KEY_PREFIX_LENGTH = 16;
 
     public ConsumerApiKey createApiKey(Long userId, String name) {
         if(repo.countByUserId(userId) >= MAX_KEYS_PER_USER)
@@ -26,7 +27,7 @@ public class ApiKeyService {
 
         String key = generateKey();
 
-        String keyPrefix = key.substring(0, 16) + "...";
+        String keyPrefix = buildKeyPrefix(key);
 
         String hashedKey = passwordEncoder.encode(key);
 
@@ -61,7 +62,13 @@ public class ApiKeyService {
 
     public ConsumerApiKey validateKey(String key)
     {
-        ConsumerApiKey apiKey = repo.findByActiveTrue()
+        String keyPrefix = buildKeyPrefix(key);
+        if(keyPrefix == null)
+        {
+            return null;
+        }
+
+        ConsumerApiKey apiKey = repo.findByKeyPrefixAndActiveTrue(keyPrefix)
                 .stream()
                 .filter(k->passwordEncoder.matches(key,k.getApiKey()))
                 .findFirst()
@@ -94,5 +101,13 @@ public class ApiKeyService {
         byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
         return "x402_sk_" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String buildKeyPrefix(String key) {
+        if(key == null || key.length() < KEY_PREFIX_LENGTH)
+        {
+            return null;
+        }
+        return key.substring(0, KEY_PREFIX_LENGTH) + "...";
     }
 }

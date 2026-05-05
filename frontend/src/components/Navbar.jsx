@@ -15,6 +15,7 @@ export default function Navbar() {
 
       <ul className="nav-links">
         <li><NavLink to="/marketplace">Marketplace</NavLink></li>
+        <li><NavLink to="/developers">Developers</NavLink></li>
         <li><NavLink to="/sell">Sell</NavLink></li>
         {user && <li><NavLink to="/my-apis">My APIs</NavLink></li>}
         {user && <li><NavLink to="/api-keys">API Keys</NavLink></li>}

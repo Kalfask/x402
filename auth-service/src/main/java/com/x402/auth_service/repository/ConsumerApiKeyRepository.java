@@ -5,12 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ConsumerApiKeyRepository extends JpaRepository<ConsumerApiKey, Long> {
 
-    List<ConsumerApiKey> findByActiveTrue();
+    List<ConsumerApiKey> findByKeyPrefixAndActiveTrue(String keyPrefix);
 
     List<ConsumerApiKey> findByUserIdOrderByCreatedAtDesc(Long userId);
 

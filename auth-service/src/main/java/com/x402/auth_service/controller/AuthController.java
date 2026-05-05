@@ -86,8 +86,8 @@ public class AuthController {
 
 
     @GetMapping("/validate-key")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> validateKey(@RequestParam String apiKey){
-        ConsumerApiKey key = apiKeyService.validateKey(apiKey);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateKey(@RequestHeader("X-API-Key") String apikey){
+        ConsumerApiKey key = apiKeyService.validateKey(apikey);
         if(key == null){
             return ResponseEntity.ok(ApiResponse.error("Invalid or inactive key", "INVALID_KEY"));
         }
