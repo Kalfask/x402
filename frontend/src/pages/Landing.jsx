@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronRight, Play, Search, SlidersHorizontal } from 'lucide-react';
 import { getMarketplace } from '../services/api';
 import ListingCard from '../components/ListingCard';
 import '../styles/marketplace.css';
@@ -28,38 +28,63 @@ export default function Landing() {
   const filteredApis = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return apis;
-    return apis.filter(api => {
+    return apis.filter((api) => {
       const haystack = `${api.name || ''} ${api.description || ''} ${api.category || ''}`.toLowerCase();
       return haystack.includes(term);
     });
   }, [apis, search]);
 
   const endpointCount = apis.reduce((total, api) => total + (api.endpoints?.length || 0), 0);
+  const freeCount = apis.filter((api) =>
+    (api.endpoints || []).some((ep) => Number(ep.pricePerCall) === 0)
+  ).length;
 
   return (
     <main className="marketplace-page">
-      <section className="hero">
-        <div className="hero-copy">
+      <section className="hero hero-cinematic">
+        <div className="hero-media-frame" aria-hidden="true">
+          <video
+            className="hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+          >
+            <source src="/media/marketplace-background.mp4" type="video/mp4" />
+          </video>
+          <div className="hero-video-overlay" />
+          <div className="hero-watermark-mask" />
+          <div className="hero-noise" />
+        </div>
+
+        <div className="hero-copy hero-copy-on-media">
           <p className="hero-kicker">X402 Marketplace</p>
-          <h1 className="hero-title">
-            APIs you can pay for at the moment of use.
+          <h1 className="hero-title hero-title-cinematic">
+            Paid APIs,
+            <br />
+            free endpoints,
+            <br />
+            one marketplace.
           </h1>
-          <p className="hero-sub">
-            A crisp marketplace for discoverable, wallet-native APIs. Publish an endpoint,
-            set a per-call USDC price, and let HTTP 402 handle the transaction.
+          <p className="hero-sub hero-sub-on-media">
+            Discover APIs that settle over HTTP 402, test free calls when available,
+            and ship against a marketplace that feels built for developers instead of procurement.
           </p>
           <div className="hero-actions">
-            <Link to="/marketplace" className="btn-primary">Browse marketplace</Link>
-            <Link to="/sell" className="btn-ghost">List an API</Link>
+            <Link to="/marketplace" className="btn-primary">Browse APIs</Link>
+            <Link to="/developers" className="btn-ghost">Read developer docs</Link>
           </div>
         </div>
 
-        <aside className="hero-panel" aria-label="Marketplace status">
+        <aside className="hero-panel hero-panel-floating" aria-label="Marketplace status">
           <div className="terminal-line">
             <span className="terminal-dot" />
-            <span>payment_required: true</span>
+            <span>request_mode: paid_or_free</span>
           </div>
-          <div className="terminal-command">curl /api/weather --pay 0.002 USDC</div>
+          <div className="terminal-command">
+            <span className="terminal-prompt">$</span> x402 call weather/current --mode auto
+          </div>
           <div className="terminal-grid">
             <div>
               <span>{apis.length}</span>
@@ -70,36 +95,44 @@ export default function Landing() {
               <p>Endpoints</p>
             </div>
             <div>
-              <span>Base</span>
-              <p>Settlement</p>
+              <span>{freeCount}</span>
+              <p>With free calls</p>
             </div>
             <div>
-              <span>402</span>
-              <p>HTTP native</p>
+              <span>Base</span>
+              <p>Settlement rail</p>
             </div>
           </div>
         </aside>
       </section>
 
-      <section className="market-strip" aria-label="Marketplace filters">
+      <section className="market-strip market-strip-split" aria-label="Marketplace filters">
         <div>
           <p className="section-eyebrow">Marketplace</p>
-          <h2>Find a paid endpoint without the procurement theatre.</h2>
+          <h2>Browse production APIs, playground endpoints, and wallet-native call flows.</h2>
         </div>
-        <div className="search-box">
-          <Search size={16} aria-hidden="true" />
-          <input
-            type="search"
-            placeholder="Search APIs, categories, use cases"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+
+        <div className="market-strip-actions">
+          <div className="search-box">
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Search APIs, categories, use cases"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="market-pills">
+            <span>Free playgrounds</span>
+            <span>402 payment flow</span>
+            <span>SDK-ready</span>
+          </div>
         </div>
       </section>
 
       <div className="filters">
         <span className="filter-label"><SlidersHorizontal size={14} /> Filters</span>
-        {CATEGORIES.map(cat => (
+        {CATEGORIES.map((cat) => (
           <button
             key={cat}
             className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
@@ -114,7 +147,7 @@ export default function Landing() {
         {loading ? (
           <div className="empty-card">Loading marketplace...</div>
         ) : filteredApis.length > 0 ? (
-          filteredApis.map(api => (
+          filteredApis.map((api) => (
             <Link to={`/marketplace/${api.id}`} key={api.id} aria-label={`View ${api.name}`}>
               <ListingCard api={api} />
             </Link>
@@ -127,27 +160,48 @@ export default function Landing() {
         )}
       </section>
 
-      <section className="editorial-section">
+      <section className="editorial-section editorial-section-expanded">
         <div>
           <p className="section-eyebrow">How it works</p>
-          <h2>One interface for sellers, buyers, and settlement.</h2>
+          <h2>A cleaner split between discovery, testing, and paid execution.</h2>
         </div>
         <div className="process-list">
           <article>
             <span>01</span>
-            <h3>Publish the endpoint</h3>
-            <p>Providers add a base URL, endpoint path, method, and a clear per-call price.</p>
+            <h3>List endpoints with intent</h3>
+            <p>Providers can expose premium endpoints, lightweight free calls, and a pricing surface that reads clearly in one grid.</p>
           </article>
           <article>
             <span>02</span>
-            <h3>Call with payment</h3>
-            <p>Consumers connect a wallet or submit a transaction hash before the API call runs.</p>
+            <h3>Call free or paid</h3>
+            <p>Consumers can hit zero-cost endpoints directly or let HTTP 402 handle payment and retry when a call is monetized.</p>
           </article>
           <article>
             <span>03</span>
-            <h3>Track usage</h3>
-            <p>Dashboards keep API keys, calls, and provider earnings visible without extra tooling.</p>
+            <h3>Move into code quickly</h3>
+            <p>The developer page and SDK examples make it easy to go from marketplace discovery to a real client integration.</p>
           </article>
+        </div>
+      </section>
+
+      <section className="developer-bridge">
+        <div className="developer-bridge-card">
+          <div>
+            <p className="section-eyebrow">Developers</p>
+            <h3>Need code instead of screenshots?</h3>
+            <p>
+              The docs page now mirrors your actual SDK structure and shows how free calls,
+              paid calls, API keys, and retry flows fit together.
+            </p>
+          </div>
+          <div className="developer-bridge-actions">
+            <Link to="/developers" className="btn-primary">
+              Open developer page <ChevronRight size={14} />
+            </Link>
+            <Link to="/sell" className="btn-ghost">
+              Publish your own API <Play size={14} />
+            </Link>
+          </div>
         </div>
       </section>
     </main>

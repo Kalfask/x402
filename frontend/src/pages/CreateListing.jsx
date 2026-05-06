@@ -19,6 +19,7 @@ export default function CreateListing() {
     endpointPath: '',
     endpointMethod: 'POST',
     pricePerCall: '',
+    freeCallsPerDay: '',
     endpointDesc: '',
   });
 
@@ -52,6 +53,7 @@ export default function CreateListing() {
         method: form.endpointMethod,
         description: form.endpointDesc,
         pricePerCall: parseFloat(form.pricePerCall),
+        freeCallsPerDay: parseInt(form.freeCallsPerDay || '0', 10),
       }, accessToken, refresh);
 
       await updateApiStatus(apiId, 'ACTIVE', accessToken, refresh);
@@ -67,14 +69,16 @@ export default function CreateListing() {
     setStep(1);
     setForm({
       name: '', description: '', baseUrl: '', category: 'AI',
-      endpointPath: '', endpointMethod: 'POST', pricePerCall: '', endpointDesc: '',
+      endpointPath: '', endpointMethod: 'POST', pricePerCall: '', freeCallsPerDay: '', endpointDesc: '',
     });
     setError(null);
   };
 
   const previewTitle = form.name || 'Your listing title';
   const previewDesc = form.description || 'Your description will appear here.';
-  const previewPrice = form.pricePerCall ? `${form.pricePerCall} USDC` : '\u2014';
+  const previewPrice = form.pricePerCall === '0'
+    ? 'Free'
+    : form.pricePerCall ? `${form.pricePerCall} USDC` : '\u2014';
 
   return (
     <div className="shell">
@@ -158,7 +162,18 @@ export default function CreateListing() {
           <div className="field-row">
             <label className="field-label">Price per call (USDC)</label>
             <input type="number" placeholder="0.001" step="0.0001" min="0" value={form.pricePerCall} onChange={e => update('pricePerCall', e.target.value)} />
-            <p className="field-hint">Consumers pay this amount in USDC on Base Sepolia for each API call</p>
+            <p className="field-hint">Set `0` if this should be a free endpoint, otherwise choose the USDC amount charged per call.</p>
+          </div>
+          <div className="field-row">
+            <label className="field-label">Free calls per day</label>
+            <input
+              type="number"
+              placeholder="0"
+              min="0"
+              value={form.freeCallsPerDay}
+              onChange={e => update('freeCallsPerDay', e.target.value)}
+            />
+            <p className="field-hint">How many free requests this endpoint allows per day before paid calls kick in.</p>
           </div>
         </div>
       )}
@@ -199,6 +214,7 @@ export default function CreateListing() {
                   <tr><td className="sum-label">Base URL</td><td className="sum-value">{form.baseUrl || '\u2014'}</td></tr>
                   <tr><td className="sum-label">Endpoint</td><td className="sum-value">{form.endpointMethod} {form.endpointPath || '\u2014'}</td></tr>
                   <tr><td className="sum-label">Price</td><td className="sum-value" style={{ color: 'var(--gold)' }}>{previewPrice}</td></tr>
+                  <tr><td className="sum-label">Free calls/day</td><td className="sum-value">{form.freeCallsPerDay || '0'}</td></tr>
                   <tr><td className="sum-label">Network</td><td className="sum-value">Base Sepolia</td></tr>
                   <tr><td className="sum-label">Currency</td><td className="sum-value">USDC</td></tr>
                 </tbody>

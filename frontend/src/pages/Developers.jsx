@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowUpRight, CheckCircle2, Copy, Package, Wallet } from 'lucide-react';
 import '../styles/marketplace.css';
 
 const snippets = {
@@ -11,7 +12,7 @@ const client = new X402Client({
   rpcUrl: 'https://sepolia.base.org',
 });
 
-const response = await client.get(1, '/api/breeds/image/random');
+const response = await client.getByName('Get Headers', '/headers');
 console.log(response);`,
   java: `x402Client client = new x402Client.Builder()
     .apiKey(System.getenv("X402_API_KEY"))
@@ -20,13 +21,36 @@ console.log(response);`,
     .rpcUrl("https://sepolia.base.org")
     .build();
 
-client.call("1", "/api/breeds/image/random", "GET", "")
+client.callByName("Get Headers", "/headers", "GET", "")
     .thenAccept(System.out::println)
     .join();`,
+  manual: `const { X402Client } = require('@x402/sdk');
+
+const client = new X402Client({
+  apiKey: process.env.X402_API_KEY,
+  baseUrl: 'http://localhost:8080',
+});
+
+try {
+  await client.get(6, '/breeds/image/random');
+} catch (error) {
+  console.log(error.message);
+  // Payment required but no wallet configured.
+}`,
   curl: `curl -H "X-API-Key: x402_sk_..." \\
+  http://localhost:8080/api/call/12/free/health
+
+curl -H "X-API-Key: x402_sk_..." \\
   -H "X-402-Payment: 0x..." \\
-  http://localhost:8080/api/call/1/api/breeds/image/random`,
+  http://localhost:8080/api/call/5/random_joke`,
 };
+
+const sdkCards = [
+  { name: '@x402/sdk', status: 'Live now', note: 'Node client with auto-pay, manual payment fallback, and endpoint discovery.' },
+  { name: 'com.x402:x402-java-sdk', status: 'Live in repo', note: 'Java SDK in `javaSDK/` with builder-based setup, `call`, and `callByName` methods.' },
+  { name: 'Python SDK', status: 'Planned', note: 'Useful for data apps, agents, and scripts that need direct marketplace execution.' },
+  { name: 'Go SDK', status: 'Planned', note: 'A tighter fit for infra services, CLIs, and high-concurrency backend consumers.' },
+];
 
 export default function Developers() {
   const [active, setActive] = useState('javascript');
@@ -40,22 +64,23 @@ export default function Developers() {
 
   return (
     <div className="developers-page">
-      <div className="page-header">
+      <div className="page-header developers-header">
         <div>
           <div className="section-eyebrow">Developer docs</div>
-          <h1 className="api-detail-title">Build with X402 SDKs</h1>
+          <h1 className="api-detail-title">Ship against the marketplace, not around it.</h1>
           <p className="api-detail-desc">
-            Use API keys, Base Sepolia USDC payments, and automatic 402 retry flows from JavaScript or Java clients.
+            This page reflects the SDK direction already sitting in your repo: one Node package live,
+            more SDKs coming, and a developer flow that supports both free API calls and paid 402 execution.
           </p>
         </div>
         <div className="api-detail-meta">
           <div className="stat-cell">
-            <div className="stat-num">JS</div>
-            <div className="stat-label">Node SDK</div>
+            <div className="stat-num">1</div>
+            <div className="stat-label">SDK in repo</div>
           </div>
           <div className="stat-cell">
-            <div className="stat-num">Java</div>
-            <div className="stat-label">JVM SDK</div>
+            <div className="stat-num">402</div>
+            <div className="stat-label">Retry model</div>
           </div>
         </div>
       </div>
@@ -63,64 +88,107 @@ export default function Developers() {
       <div className="docs-layout">
         <aside className="docs-sidebar">
           <a href="#quickstart">Quickstart</a>
-          <a href="#auth">API keys</a>
-          <a href="#payments">Payments</a>
-          <a href="#manual">Manual calls</a>
+          <a href="#free">Free calls</a>
+          <a href="#paid">Paid calls</a>
+          <a href="#roadmap">SDK roadmap</a>
         </aside>
 
         <main className="docs-main">
-          <section id="quickstart" className="docs-section">
+          <section id="quickstart" className="docs-section docs-section-feature">
             <div>
               <div className="section-title">Quickstart</div>
-              <h2>Call paid APIs with one client</h2>
+              <h2>Start with the Node SDK you already built.</h2>
             </div>
             <p>
-              Create an API key from the API Keys page, fund your wallet with Base Sepolia USDC, then call any listed endpoint by id and path.
+              The current package in your repo is `@x402/sdk`, exporting `X402Client` from CommonJS.
+              It supports marketplace discovery by name, direct endpoint calls by id, auto-pay with a wallet,
+              and a manual mode for clients that only want payment instructions.
             </p>
 
             <div className="snippet-tabs" role="tablist" aria-label="SDK examples">
-              <button className={active === 'javascript' ? 'active' : ''} onClick={() => setActive('javascript')}>JavaScript</button>
-              <button className={active === 'java' ? 'active' : ''} onClick={() => setActive('java')}>Java</button>
-              <button className={active === 'curl' ? 'active' : ''} onClick={() => setActive('curl')}>cURL</button>
+              <button className={active === 'javascript' ? 'active' : ''} onClick={() => setActive('javascript')}>Node SDK</button>
+              <button className={active === 'java' ? 'active' : ''} onClick={() => setActive('java')}>Java SDK</button>
+              <button className={active === 'manual' ? 'active' : ''} onClick={() => setActive('manual')}>Manual mode</button>
+              <button className={active === 'curl' ? 'active' : ''} onClick={() => setActive('curl')}>HTTP calls</button>
             </div>
 
             <div className="snippet-box">
               <div className="response-top">
-                <span>{active}</span>
-                <button className="btn-small-ghost" onClick={copySnippet}>{copied ? 'Copied' : 'Copy'}</button>
+                <span className="snippet-label">{active}</span>
+                <button className="btn-small-ghost" onClick={copySnippet}>
+                  {copied ? 'Copied' : 'Copy'} <Copy size={14} />
+                </button>
               </div>
               <pre className="response-pre">{snippets[active]}</pre>
             </div>
           </section>
 
-          <section id="auth" className="docs-section">
+          <section id="free" className="docs-section">
             <div>
-              <div className="section-title">API keys</div>
-              <h2>Pass your key with every call</h2>
+              <div className="section-title">Free calls</div>
+              <h2>Use zero-cost endpoints as frictionless entry points.</h2>
             </div>
-            <p>
-              SDKs send `X-API-Key` to the gateway. Store keys in environment variables and copy the one-time key when it is generated.
-            </p>
+            <div className="docs-stack">
+              <p>
+                Now that some APIs support free calls, the frontend should surface them as first-class playgrounds.
+                In practice that means clearer marketplace labeling, simpler endpoint CTAs, and examples that show
+                a normal `X-API-Key` request without inventing payment where it is not needed.
+              </p>
+              <div className="docs-note">
+                <CheckCircle2 size={18} />
+                <span>Free endpoints are the fastest way for developers to validate payload shape, latency, and auth flow before moving into paid calls.</span>
+              </div>
+            </div>
           </section>
 
-          <section id="payments" className="docs-section">
+          <section id="paid" className="docs-section">
             <div>
-              <div className="section-title">Payments</div>
-              <h2>Handle 402 automatically</h2>
+              <div className="section-title">Paid calls</div>
+              <h2>Keep the 402 flow explicit and boring in the best way.</h2>
             </div>
-            <p>
-              When the gateway returns payment requirements, SDKs pay the provider wallet in USDC on Base Sepolia, attach `X-402-Payment`, and retry the call.
-            </p>
+            <div className="docs-stack">
+              <p>
+                For monetized endpoints, the Node client already encodes the right story: first request, 402 response,
+                USDC transfer on Base Sepolia, `X-402-Payment` retry, then the final API response. That is the piece your future SDKs should keep consistent.
+              </p>
+              <div className="docs-grid">
+                <article className="docs-mini-card">
+                  <Wallet size={18} />
+                  <h3>Wallet-backed mode</h3>
+                  <p>Provide `privateKey` and let the client settle automatically.</p>
+                </article>
+                <article className="docs-mini-card">
+                  <ArrowUpRight size={18} />
+                  <h3>Manual mode</h3>
+                  <p>Surface payment instructions, then retry with a transaction hash.</p>
+                </article>
+              </div>
+            </div>
           </section>
 
-          <section id="manual" className="docs-section">
+          <section id="roadmap" className="docs-section">
             <div>
-              <div className="section-title">Manual calls</div>
-              <h2>Bring your own transaction hash</h2>
+              <div className="section-title">SDK roadmap</div>
+              <h2>Design the page as a home for more languages, not a one-off docs stub.</h2>
             </div>
-            <p>
-              Clients without a private key can pay manually and send the transaction hash in `X-402-Payment` on the second request.
-            </p>
+            <div className="docs-stack">
+              <div className="docs-note">
+                <Package size={18} />
+                <span>Maven coordinates in the repo today: `com.x402:x402-java-sdk:1.0.0`.</span>
+              </div>
+            </div>
+            <div className="sdk-grid">
+              {sdkCards.map((card) => (
+                <article key={card.name} className="sdk-card">
+                  <div className="sdk-card-top">
+                    <Package size={18} />
+                    <span>{card.status}</span>
+                  </div>
+                  <h3>{card.name}</h3>
+                  <p>{card.note}</p>
+                </article>
+              ))}
+            </div>
           </section>
         </main>
       </div>

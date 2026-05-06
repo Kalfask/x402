@@ -58,17 +58,58 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
             return chain.filter(exchange);
         }
         String paymentHeader = exchange.getRequest().getHeaders().getFirst("X-402-Payment");
+        String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
         if(paymentHeader == null)
         {
-            return return402(exchange,path);
+            String[] segments = path.split("/");
+            Long endpointId= Long.parseLong(segments[3]);
+            return lookupEndpoint(endpointId)
+                    .flatMap(jsonNode -> {
+                        JsonNode data =  jsonNode.path("data");
+                        int freeApiCalls = Integer.parseInt(data.get("freeCallsPerDay").asText());
+                        String providerApiKey = data.path("providerApiKey").asText("");
+                        Long providerId = data.path("providerId").asLong();
+                        Long apiId = data.path("apiId").asLong();
+                        String baseUrl = data.path("baseUrl").asText();
+                        String endpointPath = data.path("path").asText();
+                        String price = data.path("pricePerCall").asText();
+                        if(freeApiCalls > 0)
+                        {
+                            if(userId !=null)
+                            {
+                                String redisKey = String.format("free:user:%s:endpoint:%d:date:%s", userId, endpointId, LocalDate.now());
+                                return getApiCallsCount(redisKey)
+                                        .flatMap(count->{
+                                            if (count > freeApiCalls)
+                                            {
+                                                return return402(exchange,path);
+                                            }
+                                            else
+                                            {
+                                                return forwardToProvider(exchange,baseUrl,endpointPath,providerApiKey);
+                                            }
+
+                                        });
+                            }
+                            else
+                            {
+                                return writeJsonResponse(exchange,HttpStatus.FORBIDDEN,Map.of("message","No User Found"));
+                            }
+
+
+                        }
+                        System.out.println("no free calls available"+freeApiCalls);
+                        return return402(exchange,path);
+                    });
+
+
+
         }
 
         return verifyAndForward(exchange,chain,paymentHeader,path);
     }
 
     private Mono<Void> return402(ServerWebExchange exchange, String path) {
-
-
 
         String[] segments = path.split("/");
         Long endpointId= Long.parseLong(segments[3]);
@@ -95,21 +136,6 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                 })
                 .onErrorResume(e -> writeJsonResponse(exchange, HttpStatus.NOT_FOUND,
                         Map.of("error", "Endpoint not found")));
-
-
-
-
-           /* Map<String,Object> body = Map.of(
-                "x402", Map.of(
-                        "version",1,
-                        "price", "0.001",
-                        "currency", "USDC",
-                        "network", "base-sepolia",
-                        "payTo","PROVIDER_WALLET_FROM_DB",
-                        "description", "API call payment required"
-                )
-        );*/
-        //return writeJsonResponse( exchange, HttpStatus.PAYMENT_REQUIRED,body);
     }
 
     private Mono<Void> verifyAndForward(ServerWebExchange exchange, GatewayFilterChain chain, String txHash, String path) {
@@ -126,24 +152,6 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                     String baseUrl = data.path("baseUrl").asText();
                     String endpointPath = data.path("path").asText();
                     String price = data.path("pricePerCall").asText();
-                    int freeApiCalls = data.path("freeCallsPerDay").asInt();
-
-                    if(freeApiCalls > 0)
-                    {
-                        String redisKey = String.format("free:user:%s:endpoint:%s:date:%s", userId, endpointId, LocalDate.now());
-                        Mono<Long> Count = reactiveStringRedisTemplate.opsForValue().increment(redisKey)
-                                .flatMap(currentCount->{
-                                    if(currentCount==1L)
-                                    {
-                                        LocalDateTime midnight = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
-                                        Duration duration = Duration.between(LocalDateTime.now(), midnight);
-                                        return reactiveStringRedisTemplate.expire(redisKey, duration)
-                                                .thenReturn(currentCount);
-                                    }
-                                    return Mono.just(currentCount);
-                                });
-
-                    }
 
 
                     return lookupWallet(providerId)
@@ -197,49 +205,6 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                     System.out.println("VERIFY ERROR: " + e.getMessage());
                     return writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,Map.of("error", "Payment verification unavailable: " + e.getMessage()));
                 });
-
-
-        /*Map<String, Object> verifyBody = Map.of(
-                "txHash", txHash,
-                "consumerId", Long.parseLong(userId),
-                "endpointId", 1L, // TODO: look up from path
-                "apiId", 1L, // TODO: look up from path
-                "providerId", 1L, // TODO: look up from DB
-                "providerWallet", "0xd306833E0D3B60AEcc6b9d5e58AB794A6b326Ee5", // TODO: from DB
-                "expectedAmount", 0.001 // TODO: from DB
-        );*/
-
-
-        /*return webClient.post()
-                .uri("http://localhost:8083/api/pay/verify")
-                .header("X-Internal-Key", internalApiKey)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(verifyBody)
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                .flatMap(response -> {
-
-                    boolean valid = response.path("data")
-                            .path("valid").asBoolean(false);
-                    if (valid) {
-                        //for now, return success since no real provider api to forward to
-                        //return chain.filter(exchange);
-                        return writeJsonResponse(exchange, HttpStatus.OK,
-                                Map.of("status", "ok", "message", "Payment verified, API call would be forwarded here"));
-                    }
-                    else {
-                        String reason = response.path("data")
-                                .path("reason").asText("Payment failed");
-                        return writeJsonResponse(exchange,HttpStatus.PAYMENT_REQUIRED,Map.of("error", reason));
-                    }
-
-                })
-                .onErrorResume(e ->{
-                    System.out.println("PAYMENT ERROR: " + e.getMessage());
-                    e.printStackTrace();
-                    return writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,
-                            Map.of("error", "Payment verification unavailable: " + e.getMessage()));
-                });*/
     }
 
     private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath, String providerApiKey) {
@@ -298,31 +263,6 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                         Map.of("error", "Provider API unreachable: " + e.getMessage())));
 
     }
-    /*private Mono<Void> forwardToProvider(ServerWebExchange exchange, String baseUrl, String endpointPath) {
-        return webClient.method(exchange.getRequest().getMethod())
-                .uri(baseUrl +endpointPath)
-                .headers(h->{
-                    exchange.getRequest().getHeaders().forEach((key,values)->{
-                        if(!key.equalsIgnoreCase("Host"))
-                        {
-                            h.addAll(key,values);
-                        }
-                    });
-                })
-                .retrieve()
-                .bodyToMono(byte[].class)
-                .flatMap(body->{
-                    exchange.getResponse().setStatusCode(HttpStatus.OK);
-                    exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-                    DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(body);
-                    return exchange.getResponse().writeWith(Mono.just(buffer));
-                })
-                .onErrorResume(e -> writeJsonResponse(exchange,
-                        HttpStatus.BAD_GATEWAY,
-                        Map.of("error", "Provider API unreachable: "
-                                + e.getMessage())));
-
-    }*/
 
     //helpers
     private Mono<Void> writeJsonResponse(ServerWebExchange exchange, HttpStatus status, Object body) {
@@ -380,4 +320,19 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                 "Access-Control-Allow-Credentials", "true");
     }
 
+    private Mono<Long> getApiCallsCount(String redisKey)
+    {
+       return reactiveStringRedisTemplate.opsForValue().increment(redisKey)
+                .flatMap(currentCount->{
+                    if(currentCount==1L)
+                    {
+                        LocalDateTime midnight = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+                        Duration duration = Duration.between(LocalDateTime.now(), midnight);
+                        return reactiveStringRedisTemplate.expire(redisKey, duration)
+                                .thenReturn(currentCount);
+                    }
+                    return Mono.just(currentCount);
+                });
+
+    }
 }

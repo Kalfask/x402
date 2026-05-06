@@ -48,6 +48,12 @@ export const deleteEndpoint = ( endpointId, token, refresh) =>
     method: 'DELETE'
   }, token, refresh);
 
+export const updateEndpoint = (endpointId, data, token, refresh) =>
+  apiFetch(`/api/provider/endpoints/${endpointId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }, token, refresh);
+
 export const addEndpoint = (apiId, endpointData, accessToken, refreshFn) => apiFetch(`/api/provider/apis/${apiId}/endpoints`, {
     method: 'POST',
     body: JSON.stringify(endpointData)
