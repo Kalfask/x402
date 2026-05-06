@@ -82,6 +82,7 @@ public class MarketplaceController {
     public ResponseEntity<ApiResponse<Long>> findEndpointIdByApiNameAndEndpointPath(
             @RequestBody Map<String,String> body,
             @RequestHeader("X-Api-key") String apiKey) {
+
         if (apiKeyValidator.isValid(apiKey)) {
             Long apiId = apiService.getApiIdByName(body.get("name"));
             Long  endpointId = apiService.getEndpointIdByApiIdAndEndpointPath(apiId, body.get("path"));

@@ -12,6 +12,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,10 @@ import org.springframework.web.reactive.function.BodyExtractors;
 import reactor.core.publisher.Flux;
 
 import java.io.Console;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +37,8 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
 
     @Value(("${app.internal-api-key}"))
     private String internalApiKey;
+
+    private final ReactiveStringRedisTemplate reactiveStringRedisTemplate;
 
     private final WebClient webClient = WebClient.create();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -119,6 +126,25 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                     String baseUrl = data.path("baseUrl").asText();
                     String endpointPath = data.path("path").asText();
                     String price = data.path("pricePerCall").asText();
+                    int freeApiCalls = data.path("freeCallsPerDay").asInt();
+
+                    if(freeApiCalls > 0)
+                    {
+                        String redisKey = String.format("free:user:%s:endpoint:%s:date:%s", userId, endpointId, LocalDate.now());
+                        Mono<Long> Count = reactiveStringRedisTemplate.opsForValue().increment(redisKey)
+                                .flatMap(currentCount->{
+                                    if(currentCount==1L)
+                                    {
+                                        LocalDateTime midnight = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+                                        Duration duration = Duration.between(LocalDateTime.now(), midnight);
+                                        return reactiveStringRedisTemplate.expire(redisKey, duration)
+                                                .thenReturn(currentCount);
+                                    }
+                                    return Mono.just(currentCount);
+                                });
+
+                    }
+
 
                     return lookupWallet(providerId)
                             .flatMap(wallet ->{

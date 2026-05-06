@@ -5,9 +5,9 @@ const { X402Client } = require('../src/index');
 // ============================================
 async function autoPayExample() {
   const client = new X402Client({
-    apiKey: 'x402_sk_YOUR_API_KEY_HERE',
+    apiKey: 'apikey',
     baseUrl: 'http://localhost:8080',
-    privateKey: 'your_wallet_private_key_here',  // Never hardcode in production!
+    privateKey: 'privatekey',  // Never hardcode in production!
     rpcUrl: 'https://sepolia.base.org',
   });
 
@@ -15,8 +15,8 @@ async function autoPayExample() {
   console.log('USDC balance:', await client.getBalance());
 
   // One line — handles 402, pays, retries automatically
-  const responseTest1 = await client.get(1, '/headers');
-  const responseTest2 = await client.getByName('Get Headers', '/headers');
+  const responseTest1 = await client.get(1, '/api/breeds/image/random');
+  const responseTest2 = await client.getByName('dog', '/api/breeds/image/random');
   console.log('Got response:', responseTest1);
   console.log('Got response by name:', responseTest2);
 }

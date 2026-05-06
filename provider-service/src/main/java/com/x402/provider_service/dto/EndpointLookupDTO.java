@@ -21,4 +21,5 @@ public class EndpointLookupDTO implements Serializable {
     private BigDecimal pricePerCall;
     private String baseUrl;
     private String providerApiKey;
+    private int freeCallsPerDay;
 }

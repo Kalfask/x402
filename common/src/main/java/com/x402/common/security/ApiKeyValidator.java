@@ -24,9 +24,8 @@ public class ApiKeyValidator {
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Api-Key", apiKey);
             HttpEntity<String> entity = new HttpEntity<>(headers);
-
             ResponseEntity<Map> response = restTemplate.exchange(
-                    "http://localhost:8081/api/auth/validate-key?apiKey="+apiKey,
+                    "http://localhost:8081/api/auth/validate-key",
                     HttpMethod.GET, entity, Map.class
             );
             if(response.getStatusCode().is2xxSuccessful()&&response.getBody()!=null){

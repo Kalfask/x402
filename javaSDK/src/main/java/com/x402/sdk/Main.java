@@ -7,7 +7,7 @@ public class Main {
 
         // 1. Initialize the SDK (Just like a developer would)
         x402Client client = new x402Client.Builder()
-                .apiKey("apikey")
+                .apiKey("api-key")
                 .privateKey("privatekey")
                 .gatewayUrl("http://localhost:8080") // Your Spring Boot Gateway
                 .rpcUrl("https://sepolia.base.org")  // Base Sepolia
@@ -17,7 +17,7 @@ public class Main {
 
         // 2. Make the purchase!
         // Let's pretend endpointId is "weather_1" and path is "/current"
-        client.call("1", "/api/breeds/image/random","GET","")
+       /* client.call("1", "/api/breeds/image/random","GET","")
                 .thenAccept(response -> {
                     System.out.println("\n✅ SUCCESS! Data Received from Gateway:");
                     System.out.println(response);
@@ -26,6 +26,17 @@ public class Main {
                     System.err.println("\n❌ FAILED: " + ex.getMessage());
                     return null;
                 })
-                .join(); // .join() prevents the Java app from closing before the internet request finishes
+                .join();*/
+
+        client.callByName("dog","/api/breeds/image/random","GET", "")
+                .thenAccept(response -> {
+                    System.out.println("\n✅ SUCCESS CALLING BY NAME! Data Received from Gateway:");
+                    System.out.println(response);
+                })
+                .exceptionally(ex -> {
+                    System.err.println("\n❌ FAILED: " + ex.getMessage());
+                    return null;
+                })
+                .join();
     }
 }

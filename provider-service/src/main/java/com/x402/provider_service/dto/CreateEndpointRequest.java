@@ -22,4 +22,6 @@ public class CreateEndpointRequest {
 
     @NotNull(message = "Price is required")
     private BigDecimal pricePerCall;
+
+    private int freeCallsPerDay;
 }

@@ -30,6 +30,9 @@ public class Endpoint {
 
     private String description;
 
+    @Builder.Default
+    private int freeCallsPerDay = 0;
+
     @Column(nullable = false, precision = 18, scale = 6)
     private BigDecimal pricePerCall;
 

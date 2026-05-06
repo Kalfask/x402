@@ -121,6 +121,7 @@ public class ApiServiceImpl implements ApiService{
         if(request.getDescription()!=null) endpoint.setDescription(request.getDescription());
         if(request.getPricePerCall()!=null) endpoint.setPricePerCall(request.getPricePerCall());
         if(request.getIsActive()!=null) endpoint.setIsActive(request.getIsActive());
+        if(request.getFreeCallsPerDay()!= endpoint.getFreeCallsPerDay()) endpoint.setFreeCallsPerDay(request.getFreeCallsPerDay());
         return toEndpointDTO(endpointRepository.save(endpoint));
     }
 
@@ -201,6 +202,7 @@ public class ApiServiceImpl implements ApiService{
                 .pricePerCall(endpoint.getPricePerCall())
                 .baseUrl(endpoint.getApi().getBaseUrl())
                 .providerApiKey(endpoint.getApi().getProviderApiKey())
+                .freeCallsPerDay(endpoint.getFreeCallsPerDay())
                 .build();
     }
 
@@ -253,6 +255,7 @@ public class ApiServiceImpl implements ApiService{
                 .pricePerCall(ep.getPricePerCall())
                 .isActive(ep.getIsActive())
                 .baseUrl(ep.getApi().getBaseUrl())
+                .freeCallsPerDay(ep.getFreeCallsPerDay())
                 .build();
     }
 

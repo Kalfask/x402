@@ -73,7 +73,7 @@ public class x402Client {
                             System.out.println("✅ Transaction confirmed! Hash: " + txHash);
                             HttpRequest.Builder request2 = HttpRequest.newBuilder()
                                     .uri(URI.create(url))
-                                    .header("X-API-Key", this.apiKey)
+                                    .header("X-Api-Key", this.apiKey)
                                     .header("X-402-Payment",txHash)
                                     .method(httpMethod.toUpperCase(),bodyPublisher);
 
@@ -95,6 +95,59 @@ public class x402Client {
                     return error;
                 });
 
+    }
+
+    public CompletableFuture<String> callByName(String apiName, String endpointPath, String httpMethod, String jsonBody)
+    {
+        String safePath = endpointPath.startsWith("/") ? endpointPath : "/" + endpointPath;
+        try{
+            String endpointId = findId(apiName, safePath);
+            return call(endpointId, endpointPath, httpMethod, jsonBody);
+        }
+        catch (Exception e)
+        {
+            CompletableFuture<String> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(new RuntimeException("Failed to resolve API name: " + e.getMessage(), e));
+            return errorFuture;
+        }
+    }
+
+    private String findId(String apiName,String endpointPath)
+    {
+        HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString("{\"name\": \""+apiName+"\", \"path\" :\""+endpointPath+"\" }");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(this.gatewayUrl+"/api/marketplace/findEndpointId"))
+                .header("X-Api-Key", this.apiKey)
+                .header("Content-Type", "application/json")
+                .POST(bodyPublisher)
+                .build();
+
+        return httpClient.sendAsync(request,HttpResponse.BodyHandlers.ofString())
+                .thenApply(response->{
+                    if(response.statusCode() == 200)
+                    {
+                        String jsonString = response.body();
+                        String marker = "\"data\":";
+                        int startIndex = jsonString.indexOf(marker);
+                        if(startIndex == -1)
+                        {
+                            throw new RuntimeException("Failed to resolve API name: " + response.body());
+                        }
+                        startIndex = startIndex + marker.length();
+                        int endIndex = startIndex;
+                        while(endIndex < jsonString.length()&&Character.isDigit(jsonString.charAt(endIndex)))
+                        {
+                            endIndex++;
+                        }
+
+                        return jsonString.substring(startIndex, endIndex).trim();
+
+                    }
+                    else
+                    {
+                        throw new RuntimeException("API Error: " + response.statusCode() + " - " + response.body());
+                    }
+                }).join();
     }
 
     private BigInteger extractPrice(String jsonBody) {

@@ -12,5 +12,6 @@ public class UpdateEndpointRequest {
     private String description;
     private BigDecimal pricePerCall;
     private Boolean isActive;
+    private int freeCallsPerDay;
 
 }

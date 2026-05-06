@@ -15,4 +15,5 @@ public class EndpointDTO {
     private BigDecimal pricePerCall;
     private Boolean isActive;
     private String baseUrl;
+    private int freeCallsPerDay;
 }
