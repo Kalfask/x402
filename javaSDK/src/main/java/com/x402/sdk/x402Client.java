@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -39,8 +40,7 @@ public class x402Client {
                 .build();
     }
 
-    public CompletableFuture<String> call(String endpointId, String endpointPath, String httpMethod, String jsonBody)
-    {
+    public CompletableFuture<String> call(String endpointId, String endpointPath, String httpMethod, String jsonBody, Map<String, String> headers) {
         String safePath = endpointPath.startsWith("/") ? endpointPath : "/" + endpointPath;
         String url = this.gatewayUrl + "/api/call/" + endpointId + safePath;
         HttpRequest.BodyPublisher bodyPublisher = (jsonBody != null && !jsonBody.isEmpty())
@@ -49,37 +49,39 @@ public class x402Client {
         HttpRequest.Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("X-API-Key", this.apiKey)
-                .method(httpMethod.toUpperCase(),bodyPublisher);
+                .method(httpMethod.toUpperCase(), bodyPublisher);
 
-        if(jsonBody != null && !jsonBody.isEmpty())
-        {
+        if (jsonBody != null && !jsonBody.isEmpty()) {
             request.header("Content-Type", "application/json");
+        }
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(request::header);
         }
 
         return httpClient.sendAsync(request.build(), HttpResponse.BodyHandlers.ofString())
-                .thenCompose(response ->{
-                    if(response.statusCode() == 200)
-                    {
+                .thenCompose(response -> {
+                    if (response.statusCode() == 200) {
                         return CompletableFuture.completedFuture(response.body());
                     }
 
-                    if(response.statusCode() == 402)
-                    {
-                        try{
+                    if (response.statusCode() == 402) {
+                        try {
                             String PayTo = extractPayTo(response.body());
                             BigInteger price = extractPrice(response.body());
 
-                            String txHash = web3Signer.payAndGetTxHash(PayTo,price,USDC_CONTRACT_ADDRESS);
+                            String txHash = web3Signer.payAndGetTxHash(PayTo, price, USDC_CONTRACT_ADDRESS);
                             System.out.println("✅ Transaction confirmed! Hash: " + txHash);
                             HttpRequest.Builder request2 = HttpRequest.newBuilder()
                                     .uri(URI.create(url))
                                     .header("X-Api-Key", this.apiKey)
-                                    .header("X-402-Payment",txHash)
-                                    .method(httpMethod.toUpperCase(),bodyPublisher);
+                                    .header("X-402-Payment", txHash)
+                                    .method(httpMethod.toUpperCase(), bodyPublisher);
 
-                            if(jsonBody != null && !jsonBody.isEmpty())
-                            {
+                            if (jsonBody != null && !jsonBody.isEmpty()) {
                                 request2.header("Content-Type", "application/json");
+                            }
+                            if(headers != null && !headers.isEmpty()) {
+                                headers.forEach(request2::header);
                             }
 
                             return httpClient.sendAsync(request2.build(), HttpResponse.BodyHandlers.ofString())
@@ -97,12 +99,12 @@ public class x402Client {
 
     }
 
-    public CompletableFuture<String> callByName(String apiName, String endpointPath, String httpMethod, String jsonBody)
+    public CompletableFuture<String> callByName(String apiName, String endpointPath, String httpMethod, String jsonBody, Map<String, String> headers)
     {
         String safePath = endpointPath.startsWith("/") ? endpointPath : "/" + endpointPath;
         try{
             String endpointId = findId(apiName, safePath);
-            return call(endpointId, endpointPath, httpMethod, jsonBody);
+            return call(endpointId, endpointPath, httpMethod, jsonBody, headers);
         }
         catch (Exception e)
         {

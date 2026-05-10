@@ -1,5 +1,8 @@
 package com.x402.sdk;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -28,7 +31,7 @@ public class Main {
                 })
                 .join();*/
 
-        client.callByName("dog","/api/breeds/image/random","GET", "")
+        client.callByName("headers", "/headers", "GET", "", Map.of("test-header","test"))
                 .thenAccept(response -> {
                     System.out.println("\n✅ SUCCESS CALLING BY NAME! Data Received from Gateway:");
                     System.out.println(response);

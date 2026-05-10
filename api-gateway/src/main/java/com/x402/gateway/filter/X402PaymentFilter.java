@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.x402.gateway.dto.UsageEvent;
 import com.x402.gateway.service.UsageEventPublisher;
+import io.lettuce.core.protocol.Endpoint;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -28,23 +32,43 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class X402PaymentFilter implements GlobalFilter , Ordered {
 
     @Value(("${app.internal-api-key}"))
     private String internalApiKey;
 
+
+   //private static final org.slf4j.Logger log = LoggerFactory.getLogger(X402PaymentFilter.class);
+
     private final ReactiveStringRedisTemplate reactiveStringRedisTemplate;
 
-    private final WebClient webClient = WebClient.create();
+
+    private final WebClient webClient;
+
+    private final WebClient externalWebClient;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     private final UsageEventPublisher  usageEventPublisher;
+
+    public X402PaymentFilter(ReactiveStringRedisTemplate redisTemplate,
+                             UsageEventPublisher publisher,
+                             @Qualifier("loadBalancedWebClient") WebClient loadBalancedWebClient,
+                             @Qualifier("externalWebClient") WebClient externalWebClient,
+                             @Value("${app.internal-api-key}") String internalApiKey) {
+        this.reactiveStringRedisTemplate = redisTemplate;
+        this.usageEventPublisher = publisher;
+        this.webClient = loadBalancedWebClient;
+        this.externalWebClient = externalWebClient;
+        this.internalApiKey = internalApiKey;
+    }
 
     @Override
     public int getOrder() {return 0;} //after jwt filter (-1)
@@ -61,8 +85,13 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
         String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
         if(paymentHeader == null)
         {
-            String[] segments = path.split("/");
-            Long endpointId= Long.parseLong(segments[3]);
+
+            Long endpointId= parseEndpointId(path);
+            if(endpointId == null)
+            {
+                return writeJsonResponse(exchange, HttpStatus.BAD_REQUEST,Map.of("error", "Invalid endpoint id"));
+            }
+
             return lookupEndpoint(endpointId)
                     .flatMap(jsonNode -> {
                         JsonNode data =  jsonNode.path("data");
@@ -82,7 +111,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                         .flatMap(count->{
                                             if (count > freeApiCalls)
                                             {
-                                                return return402(exchange,path);
+                                                return return402(exchange,data);
                                             }
                                             else
                                             {
@@ -98,8 +127,9 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
 
 
                         }
-                        System.out.println("no free calls available"+freeApiCalls);
-                        return return402(exchange,path);
+                        log.info("No free calls for endpoint, requiring payment");
+                        //System.out.println("no free calls available"+freeApiCalls);
+                        return return402(exchange,data);
                     });
 
 
@@ -109,39 +139,39 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
         return verifyAndForward(exchange,chain,paymentHeader,path);
     }
 
-    private Mono<Void> return402(ServerWebExchange exchange, String path) {
+    private Mono<Void> return402(ServerWebExchange exchange, JsonNode data) {
 
-        String[] segments = path.split("/");
-        Long endpointId= Long.parseLong(segments[3]);
 
-        return lookupEndpoint(endpointId)
-                .flatMap(json ->{
-                    JsonNode data =json.path("data");
-                    Long providerId = data.path("providerId").asLong();
+        Long providerId = data.path("providerId").asLong();
 
-                    return lookupWallet(providerId)
-                            .flatMap(wallet ->{
-                                Map<String,Object> body =  Map.of(
-                                        "x402", Map.of(
-                                                "version", 1,
-                                                "price", data.path("pricePerCall").asText(),
-                                                "currency", "USDC",
-                                                "network","base-sepolia",
-                                                "payTo", wallet,
-                                                "endpointId", data.path("id").asLong()
-                                        )
+        return lookupWallet(providerId)
+                .flatMap(wallet ->{
+                    Map<String,Object> body =  Map.of(
+                            "x402", Map.of(
+                                    "version", 1,
+                                    "price", data.path("pricePerCall").asText(),
+                                    "currency", "USDC",
+                                    "network","base-sepolia",
+                                    "payTo", wallet,
+                                    "endpointId", data.path("id").asLong()
+                            )
                                 );
                                 return writeJsonResponse(exchange,HttpStatus.PAYMENT_REQUIRED, body);
                             });
-                })
-                .onErrorResume(e -> writeJsonResponse(exchange, HttpStatus.NOT_FOUND,
-                        Map.of("error", "Endpoint not found")));
+
     }
 
     private Mono<Void> verifyAndForward(ServerWebExchange exchange, GatewayFilterChain chain, String txHash, String path) {
         String userId= exchange.getRequest().getHeaders().getFirst("X-User-Id");
-        String[] segments = path.split("/");
-        Long endpointId= Long.parseLong(segments[3]);
+        if(userId == null)
+        {
+            return writeJsonResponse(exchange,HttpStatus.FORBIDDEN,Map.of("message","No User Found"));
+        }
+        Long endpointId= parseEndpointId(path);
+        if(endpointId == null)
+        {
+            return writeJsonResponse(exchange,HttpStatus.BAD_REQUEST,Map.of("message","No Endpoint Found"));
+        }
 
         return lookupEndpoint(endpointId)
                 .flatMap(json ->{
@@ -152,6 +182,11 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                     String baseUrl = data.path("baseUrl").asText();
                     String endpointPath = data.path("path").asText();
                     String price = data.path("pricePerCall").asText();
+
+                    if(!isValidEndpointData(price,baseUrl,path))
+                    {
+                        return writeJsonResponse(exchange,HttpStatus.FORBIDDEN,Map.of("message","Received Invalid Data"));
+                    }
 
 
                     return lookupWallet(providerId)
@@ -166,7 +201,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                         "expectedAmount", new java.math.BigDecimal(price)
                                 );
                                 return webClient.post()
-                                        .uri("http://localhost:8083/api/pay/verify")
+                                        .uri("http://PAYMENT-SERVICE/api/pay/verify")
                                         .header("X-Internal-Key", internalApiKey)
                                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                         .bodyValue(verifyBody)
@@ -188,7 +223,8 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                                 try{
                                                     usageEventPublisher.publish(event);
                                                 }catch(Exception e){
-                                                    System.err.println("Failed to publish usage event, but continuing flow: " + e.getMessage());
+                                                    log.warn("Failed to publish event", e.getMessage());
+                                                    //System.err.println("Failed to publish usage event, but continuing flow: " + e.getMessage());
                                                 }
 
                                                 //Forward to provider's real API
@@ -202,8 +238,9 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                             });
                 })
                 .onErrorResume(e->{
-                    System.out.println("VERIFY ERROR: " + e.getMessage());
-                    return writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,Map.of("error", "Payment verification unavailable: " + e.getMessage()));
+                    log.error("Payment verification failed on verify and forward", e);
+                    //System.out.println("VERIFY ERROR: " + e.getMessage());
+                    return writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,Map.of("error", "Payment verification temporary unavailable: "));
                 });
     }
 
@@ -212,7 +249,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                 .collectList()
                 .flatMap(bodyparts ->{
 
-                    WebClient.RequestBodySpec request = webClient.method(exchange.getRequest().getMethod())
+                   WebClient.RequestBodySpec request = externalWebClient.method(exchange.getRequest().getMethod())
                             .uri(baseUrl + endpointPath);
                     request.headers(h-> {
                         exchange.getRequest().getHeaders().forEach((key,value)->{
@@ -259,8 +296,13 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                                 return exchange.getResponse().writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
                             });
                 })
-                .onErrorResume(e-> writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,
-                        Map.of("error", "Provider API unreachable: " + e.getMessage())));
+                .onErrorResume(e->
+                        {
+                            log.error("verify error in forward to provider", e);
+                            //System.out.println("VERIFY ERROR: " + e.getMessage());
+                            return writeJsonResponse(exchange, HttpStatus.BAD_GATEWAY,
+                                    Map.of("error", "Provider API unreachable"));
+                        });
 
     }
 
@@ -285,7 +327,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
     private Mono<JsonNode> lookupEndpoint(Long endpointId)
     {
         return webClient.get()
-                .uri("http://localhost:8082/api/marketplace/lookup?endpointId=" + endpointId)
+                .uri("http://PROVIDER-SERVICE/api/marketplace/lookup?endpointId=" + endpointId)
                 .header("X-Internal-Key", internalApiKey)
                 .retrieve()
                 .bodyToMono(JsonNode.class);
@@ -294,7 +336,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
     private Mono<String> lookupWallet(Long providerId)
     {
         return webClient.get()
-                .uri("http://localhost:8081/api/auth/wallet/lookup?userId=" + providerId)
+                .uri("http://AUTH-SERVICE/api/auth/wallet/lookup?userId=" + providerId)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .map(json -> json.path("data").path("walletAddress").asText());
@@ -334,5 +376,37 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
                     return Mono.just(currentCount);
                 });
 
+    }
+
+    private Long parseEndpointId(String path)
+    {
+        try{
+            String[] segments = path.split("/");
+            if(segments.length <=3)
+            {
+                return null;
+            }
+
+            for(String segment : segments)
+            {
+                if("..".equals(segment)||segment.contains(".."))
+                {
+                    return null;
+                }
+            }
+
+            return Long.parseLong(segments[3]);
+        }
+        catch (NumberFormatException | NullPointerException e)
+        {
+            return null;
+        }
+    }
+
+    private boolean isValidEndpointData(String price, String baseUrl, String path)
+    {
+        return price != null && !price.isEmpty() &&
+                path != null && !path.isEmpty() &&
+                baseUrl != null && !baseUrl.isEmpty();
     }
 }

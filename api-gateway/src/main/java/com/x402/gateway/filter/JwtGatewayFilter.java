@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -25,12 +26,15 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class JwtGatewayFilter implements GlobalFilter, Ordered {
     @Value("${app.jwt-secret}")
     private String jwtSecret;
 
+    @Value("${app.services.auth-url}")
+    private String authUrl;
 
-    private WebClient webClient = WebClient.create();
+    private final WebClient webClient;
 
     private final List<String> publicPaths = List.of(
             "/api/auth/exchange", "/api/auth/refresh",
@@ -47,7 +51,7 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
         if(apikeyHeader!=null)
         {
             return webClient.get()
-                    .uri("http://localhost:8081/api/auth/validate-key")
+                    .uri("http://AUTH-SERVICE/api/auth/validate-key")
                     .header("X-Api-Key",apikeyHeader)
                     .retrieve()
                     .bodyToMono(JsonNode.class)

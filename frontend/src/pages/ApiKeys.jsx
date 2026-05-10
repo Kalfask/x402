@@ -112,7 +112,7 @@ export default function ApiKeys() {
             <span>Name</span>
             <span>Key prefix</span>
             <span>Status</span>
-            <span>Last used</span>
+           
             <span>Actions</span>
           </div>
           {keys.map(k => (
@@ -122,7 +122,7 @@ export default function ApiKeys() {
               <span className={`table-status ${k.active ? 'active' : 'disabled'}`}>
                 {k.active ? 'Active' : 'Inactive'}
               </span>
-              <span className="table-date">{k.lastUsedAt}</span>
+              
               <div>
                 {k.active && (
                   <button

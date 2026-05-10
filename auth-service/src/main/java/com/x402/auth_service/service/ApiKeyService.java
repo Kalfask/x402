@@ -74,11 +74,11 @@ public class ApiKeyService {
                 .findFirst()
                 .orElse(null);
 
-        if(apiKey != null)
+       /* if(apiKey != null)
         {
             apiKey.setLastUsedAt(LocalDateTime.now());
             repo.save(apiKey);
-        }
+        }*/
         return apiKey;
     }
 

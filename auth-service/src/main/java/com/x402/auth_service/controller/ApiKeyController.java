@@ -43,9 +43,9 @@ public class ApiKeyController {
                         "name", k.getName(),
                         "prefix", k.getKeyPrefix(),
                         "active", k.isActive(),
-                        "createdAt", k.getCreatedAt().toString(),
-                        "lastUsedAt", k.getLastUsedAt() != null
-                                ? k.getLastUsedAt().toString() : "Never"
+                        "createdAt", k.getCreatedAt().toString()
+                        /*"lastUsedAt", k.getLastUsedAt() != null
+                                ? k.getLastUsedAt().toString() : "Never"*/
                 ))
                 .toList();
 

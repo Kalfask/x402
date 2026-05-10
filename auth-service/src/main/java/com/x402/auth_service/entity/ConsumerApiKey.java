@@ -38,6 +38,6 @@ public class ConsumerApiKey {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private LocalDateTime lastUsedAt;
+    //private LocalDateTime lastUsedAt;
 
 }

@@ -2,6 +2,8 @@ package com.x402.common.security;
 
 import com.x402.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,11 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean(RestTemplate.class)
 public class ApiKeyValidator {
+
+    @Value("${app.services.auth-url:http://localhost:8081}")
+    private String authUrl;
 
     private final RestTemplate restTemplate;
 
@@ -25,7 +31,7 @@ public class ApiKeyValidator {
             headers.set("X-Api-Key", apiKey);
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<Map> response = restTemplate.exchange(
-                    "http://localhost:8081/api/auth/validate-key",
+                    authUrl+"/api/auth/validate-key",
                     HttpMethod.GET, entity, Map.class
             );
             if(response.getStatusCode().is2xxSuccessful()&&response.getBody()!=null){
