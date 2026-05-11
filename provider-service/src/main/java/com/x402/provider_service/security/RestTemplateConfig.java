@@ -4,6 +4,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,6 +18,14 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
 
        return builder.connectTimeout(Duration.ofSeconds(5))
+                .readTimeout(Duration.ofSeconds(5))
+                .build();
+    }
+
+    @Bean
+    @Primary
+    public RestTemplate NormalRestTemplate(RestTemplateBuilder builder) {
+        return builder.connectTimeout(Duration.ofSeconds(5))
                 .readTimeout(Duration.ofSeconds(5))
                 .build();
     }

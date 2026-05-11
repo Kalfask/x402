@@ -55,7 +55,15 @@ export default function MyApis() {
             <div key={api.id} className="table-row five-col">
               <span className="table-name">{api.name}</span>
               <span className="table-cat">{api.category}</span>
-              <span className="table-count">{api.endpoints?.length || 0}</span>
+              <span className="table-count">
+                {api.endpoints?.length || 0}
+                {(() => {
+                  const freeEnabled = (api.endpoints || []).filter((ep) =>
+                    Number(ep.pricePerCall) === 0 || Number(ep.freeCallsPerDay || 0) > 0
+                  ).length;
+                  return freeEnabled > 0 ? ` (${freeEnabled} free-enabled)` : '';
+                })()}
+              </span>
               <span className={`table-status ${api.status?.toLowerCase()}`}>{api.status}</span>
               <div style={{display: 'flex', gap: 8}}>
                 <Link to={`/my-apis/${api.id}/edit`}>

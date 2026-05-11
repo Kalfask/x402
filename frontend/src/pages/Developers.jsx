@@ -69,8 +69,8 @@ export default function Developers() {
           <div className="section-eyebrow">Developer docs</div>
           <h1 className="api-detail-title">Ship against the marketplace, not around it.</h1>
           <p className="api-detail-desc">
-            This page reflects the SDK direction already sitting in your repo: one Node package live,
-            more SDKs coming, and a developer flow that supports both free API calls and paid 402 execution.
+            Use the marketplace to discover APIs, test free endpoints when they are available,
+            and move into paid 402 flows without changing the way your client is structured.
           </p>
         </div>
         <div className="api-detail-meta">
@@ -97,12 +97,12 @@ export default function Developers() {
           <section id="quickstart" className="docs-section docs-section-feature">
             <div>
               <div className="section-title">Quickstart</div>
-              <h2>Start with the Node SDK you already built.</h2>
+              <h2>Start with the SDK that matches your stack.</h2>
             </div>
             <p>
-              The current package in your repo is `@x402/sdk`, exporting `X402Client` from CommonJS.
-              It supports marketplace discovery by name, direct endpoint calls by id, auto-pay with a wallet,
-              and a manual mode for clients that only want payment instructions.
+              The JavaScript and Java SDKs both support endpoint discovery by name, direct calls by id,
+              wallet-backed auto-pay, and a manual mode that returns payment instructions when your client
+              should not hold a signing key.
             </p>
 
             <div className="snippet-tabs" role="tablist" aria-label="SDK examples">
@@ -126,17 +126,16 @@ export default function Developers() {
           <section id="free" className="docs-section">
             <div>
               <div className="section-title">Free calls</div>
-              <h2>Use zero-cost endpoints as frictionless entry points.</h2>
+              <h2>Use free endpoints to validate auth and response shape quickly.</h2>
             </div>
             <div className="docs-stack">
               <p>
-                Now that some APIs support free calls, the frontend should surface them as first-class playgrounds.
-                In practice that means clearer marketplace labeling, simpler endpoint CTAs, and examples that show
-                a normal `X-API-Key` request without inventing payment where it is not needed.
+                Free endpoints are ideal for trying a provider before introducing payment handling. When an endpoint is free,
+                a standard request with `X-API-Key` is enough, and the response comes back without any `X-402-Payment` retry step.
               </p>
               <div className="docs-note">
                 <CheckCircle2 size={18} />
-                <span>Free endpoints are the fastest way for developers to validate payload shape, latency, and auth flow before moving into paid calls.</span>
+                <span>Use free calls first to validate payload shape, latency, and API-key auth before moving a client into paid execution.</span>
               </div>
             </div>
           </section>
@@ -144,23 +143,24 @@ export default function Developers() {
           <section id="paid" className="docs-section">
             <div>
               <div className="section-title">Paid calls</div>
-              <h2>Keep the 402 flow explicit and boring in the best way.</h2>
+              <h2>Keep the 402 payment loop predictable.</h2>
             </div>
             <div className="docs-stack">
               <p>
-                For monetized endpoints, the Node client already encodes the right story: first request, 402 response,
-                USDC transfer on Base Sepolia, `X-402-Payment` retry, then the final API response. That is the piece your future SDKs should keep consistent.
+                For paid endpoints, the client makes the first request, reads the 402 payment instructions,
+                settles in Base Sepolia USDC, sends `X-402-Payment`, and retries the request. The same flow applies
+                whether you integrate through JavaScript, Java, or direct HTTP.
               </p>
               <div className="docs-grid">
                 <article className="docs-mini-card">
                   <Wallet size={18} />
                   <h3>Wallet-backed mode</h3>
-                  <p>Provide `privateKey` and let the client settle automatically.</p>
+                  <p>Provide a wallet key and let the SDK pay and retry automatically.</p>
                 </article>
                 <article className="docs-mini-card">
                   <ArrowUpRight size={18} />
                   <h3>Manual mode</h3>
-                  <p>Surface payment instructions, then retry with a transaction hash.</p>
+                  <p>Read the payment instructions and retry later with a transaction hash.</p>
                 </article>
               </div>
             </div>
@@ -169,12 +169,12 @@ export default function Developers() {
           <section id="roadmap" className="docs-section">
             <div>
               <div className="section-title">SDK roadmap</div>
-              <h2>Design the page as a home for more languages, not a one-off docs stub.</h2>
+              <h2>Plan integrations across more than one language.</h2>
             </div>
             <div className="docs-stack">
               <div className="docs-note">
                 <Package size={18} />
-                <span>Maven coordinates in the repo today: `com.x402:x402-java-sdk:1.0.0`.</span>
+                <span>Current Java package coordinates in the repo: `com.x402:x402-java-sdk:1.0.0`.</span>
               </div>
             </div>
             <div className="sdk-grid">

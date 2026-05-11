@@ -1,16 +1,26 @@
-# Maven / Java
+# Java
 target/
 *.class
-.idea/
-*.iml
+*.jar
+*.war
 
-# Node / Frontend
+# Node
 node_modules/
 dist/
+
+# Env / secrets
 .env
-.env.local
-*.log
+.env.*
+application-local.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log

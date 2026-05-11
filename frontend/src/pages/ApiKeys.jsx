@@ -147,6 +147,8 @@ export default function ApiKeys() {
           borderRadius: 2, lineHeight: 1.8
         }}>
           curl -H "X-Api-Key: x402_sk_..." \<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp; http://localhost:8080/api/call/12/free/health<br/><br/>
+          curl -H "X-Api-Key: x402_sk_..." \<br/>
           &nbsp;&nbsp;&nbsp;&nbsp; -H "X-402-Payment: 0x..." \<br/>
           &nbsp;&nbsp;&nbsp;&nbsp; http://localhost:8080/api/call/5/random_joke
         </div>

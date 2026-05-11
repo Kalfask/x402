@@ -9,6 +9,8 @@ import com.x402.provider_service.repository.ApiRepository;
 import com.x402.provider_service.repository.EndpointRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class ApiServiceImpl implements ApiService{
 
     private final ApiRepository apiRepository;
     private final EndpointRepository endpointRepository;
 
     private final RestTemplate restTemplate;
+
+    private final RestTemplate NormalRestTemplate;
+
+    public ApiServiceImpl(ApiRepository apiRepository, EndpointRepository endpointRepository,@Qualifier("restTemplate") RestTemplate restTemplate,
+                          @Qualifier("NormalRestTemplate") RestTemplate NormalRestTemplate) {
+        this.apiRepository = apiRepository;
+        this.endpointRepository = endpointRepository;
+        this.restTemplate = restTemplate;
+        this.NormalRestTemplate = NormalRestTemplate;
+    }
 
     //Provider Operations
 
@@ -262,19 +274,21 @@ public class ApiServiceImpl implements ApiService{
     private boolean verifyApiReachable(String testUrl)
     {
         try{
-            ResponseEntity<String> response = restTemplate.getForEntity(testUrl, String.class);
+            ResponseEntity<String> response = NormalRestTemplate.getForEntity(testUrl, String.class);
             //System.out.println(response.getStatusCode());
             return response.getStatusCode().is2xxSuccessful() ||
                     response.getStatusCode().is3xxRedirection();
         }
         catch (HttpStatusCodeException e)
         {
+            log.error("HTTP STATUS EXCEPTION{}", e.getStatusCode());
             System.out.println(e.getStatusCode());
             return e.getStatusCode() == HttpStatus.UNAUTHORIZED;
         }
         catch (Exception e)
         {
-            System.out.println("API reachable error "+ e.getMessage());
+            log.error("\"API reachable error \"{}", e.getMessage());
+            //System.out.println("API reachable error "+ e.getMessage());
             return false;
         }
 
