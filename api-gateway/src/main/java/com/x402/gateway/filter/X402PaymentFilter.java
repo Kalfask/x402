@@ -43,6 +43,9 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
     @Value(("${app.internal-api-key}"))
     private String internalApiKey;
 
+    @Value("${app.frontend-url:http://localhost:5173}")
+    String frontendUrl;
+
 
    //private static final org.slf4j.Logger log = LoggerFactory.getLogger(X402PaymentFilter.class);
 
@@ -357,7 +360,7 @@ public class X402PaymentFilter implements GlobalFilter , Ordered {
         exchange.getResponse().getHeaders().remove("Access-Control-Allow-Methods");
         exchange.getResponse().getHeaders().remove("Access-Control-Allow-Headers");
         exchange.getResponse().getHeaders().set(
-                "Access-Control-Allow-Origin", "http://localhost:5173");
+                "Access-Control-Allow-Origin", frontendUrl);
         exchange.getResponse().getHeaders().set(
                 "Access-Control-Allow-Credentials", "true");
     }

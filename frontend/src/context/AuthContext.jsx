@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API = 'http://localhost:8080';
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   // On first load: if refresh token exists, get a new access token
   useEffect(() => {

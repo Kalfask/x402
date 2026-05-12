@@ -34,6 +34,9 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
     @Value("${app.services.auth-url}")
     private String authUrl;
 
+    @Value("${app.frontend-url:http://localhost:5173}")
+    String frontendUrl;
+
     private final WebClient webClient;
 
     private final List<String> publicPaths = List.of(
@@ -109,7 +112,7 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
             byte[] bytes = new ObjectMapper().writeValueAsBytes(Map.of("error", message));
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", "http://localhost:5173");
+            exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", frontendUrl);
             exchange.getResponse().getHeaders().set("Access-Control-Allow-Credentials", "true");
 
             DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(bytes);

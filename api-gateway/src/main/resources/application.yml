@@ -110,6 +110,7 @@ app:
     auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
     provider-url: ${PROVIDER_SERVICE_URL:http://localhost:8082}
     payment-url: ${PAYMENT_SERVICE_URL:http://localhost:8083}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
 
 
