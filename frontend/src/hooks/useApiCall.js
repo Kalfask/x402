@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSendPayment } from './useSendPayment';
 
-const API_BASE = 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export function useApiCall() {
   const { accessToken } = useAuth();

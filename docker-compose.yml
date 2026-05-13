@@ -148,14 +148,26 @@ services:
 
   frontend:
     image: x402-frontend
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - api-gateway
 
-
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+     - "80:80"
+     - "81:81"
+     - "443:443"
+    volumes:
+      - ./npm-data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - frontend
 volumes:
   mysql-data:
+
 
 
 
