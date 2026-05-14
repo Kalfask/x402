@@ -14,6 +14,7 @@ import java.time.Duration;
 public class RestTemplateConfig {
 
     @Bean
+    @Primary
     @LoadBalanced
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
 
@@ -23,7 +24,6 @@ public class RestTemplateConfig {
     }
 
     @Bean
-    @Primary
     public RestTemplate NormalRestTemplate(RestTemplateBuilder builder) {
         return builder.connectTimeout(Duration.ofSeconds(5))
                 .readTimeout(Duration.ofSeconds(5))
